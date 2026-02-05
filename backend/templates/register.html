@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Diabetes Monitoring - Register</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(180deg,#c9f1f3,#e8fbff);
+    overflow:hidden;
+}
+
+/* TOP DATE TIME */
+.top-bar{
+    position:absolute;
+    top:15px;
+    width:100%;
+    text-align:center;
+    font-weight:600;
+    color:#0b3c5d;
+}
+
+/* MAIN CARD */
+.container{
+    width:950px;
+    max-width:95%;
+    display:flex;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,0.25);
+    background:white;
+}
+
+/* LEFT PANEL */
+.left{
+    flex:1;
+    color:white;
+    padding:50px 30px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    position:relative;
+    background:linear-gradient(135deg,#0e2f5a,#174a8b);
+}
+
+/* Animated ECG Line */
+.ecg {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    opacity:0.15;
+}
+
+.ecg path{
+    stroke:#8fd3ff;
+    stroke-width:3;
+    fill:none;
+    stroke-dasharray:1000;
+    stroke-dashoffset:1000;
+    animation:ecgMove 6s linear infinite;
+}
+
+@keyframes ecgMove{
+    to{ stroke-dashoffset:0; }
+}
+
+.left h1{
+    font-size:32px;
+    margin-bottom:20px;
+}
+
+.left p{
+    font-size:15px;
+    opacity:0.9;
+}
+
+/* RIGHT PANEL */
+.right{
+    flex:1;
+    padding:50px 40px;
+    background:rgba(255,255,255,0.9);
+    backdrop-filter:blur(8px);
+}
+
+.right h2{
+    text-align:center;
+    margin-bottom:30px;
+    color:#174a8b;
+}
+
+/* INPUTS */
+.input-box{
+    margin-bottom:20px;
+}
+
+.input-box input{
+    width:100%;
+    padding:14px 15px;
+    border-radius:10px;
+    border:2px solid #cde8ef;
+    font-size:15px;
+    transition:0.3s;
+}
+
+.input-box input:focus{
+    border-color:#0fa3b1;
+    box-shadow:0 0 10px #0fa3b1;
+    outline:none;
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:14px;
+    background:linear-gradient(135deg,#0fa3b1,#0b7285);
+    border:none;
+    border-radius:12px;
+    color:white;
+    font-size:17px;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 6px 15px rgba(0,0,0,0.2);
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    .container{
+        flex-direction:column;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div id="date"></div>
+    <div id="time"></div>
+</div>
+
+<div class="container">
+
+    <div class="left">
+        <!-- ECG Background -->
+        <svg class="ecg" viewBox="0 0 800 200">
+            <path d="M0,100 L100,100 L150,40 L200,160 L250,100 L800,100"/>
+        </svg>
+
+        <h1>Smart Diabetes Monitoring</h1>
+        <p>Register once and start monitoring your health in real-time using wearable sensors, AI prediction and cloud dashboard.</p>
+    </div>
+
+    <div class="right">
+        <h2>User Registration</h2>
+
+        <form id="regForm">
+
+    <div class="input-box">
+        <input type="text" id="name" placeholder="Full Name" required>
+    </div>
+
+    <div class="input-box">
+        <input type="number" id="age" placeholder="Age" required>
+    </div>
+
+    <div class="input-box">
+        <input type="number" id="height" placeholder="Height (cm)" required>
+    </div>
+
+    <div class="input-box">
+        <input type="number" id="weight" placeholder="Weight (kg)" required>
+    </div>
+
+    <div class="input-box">
+        <input type="number" step="0.1" id="bmi" placeholder="BMI" readonly>
+    </div>
+
+    <button type="submit">Register</button>
+</form>
+
+
+        <p id="msg"></p>
+    </div>
+
+</div>
+
+<script>
+// LIVE DATE & TIME
+function updateDateTime(){
+    const now = new Date();
+    const dateOptions = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+    document.getElementById("date").innerText = now.toLocaleDateString('en-IN', dateOptions);
+    document.getElementById("time").innerText = now.toLocaleTimeString('en-IN');
+}
+setInterval(updateDateTime,1000);
+updateDateTime();
+
+// FORM SUBMIT
+document.getElementById("regForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    fetch("/register",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+       body: JSON.stringify({
+    name: document.getElementById("name").value,
+    age: document.getElementById("age").value,
+    height: document.getElementById("height").value,
+    weight: document.getElementById("weight").value,
+    bmi: document.getElementById("bmi").value
+})
+
+
+    })
+    .then(res=>res.json())
+ .then(data=>{
+    document.getElementById("msg").innerText = data.message;
+
+    // ✅ go to dashboard after register
+    setTimeout(()=>{
+        window.location.href = "/dashboard";
+    },1000);
+});
+
+
+});
+
+// AUTO BMI CALCULATION
+function calculateBMI(){
+    const height = document.getElementById("height").value;
+    const weight = document.getElementById("weight").value;
+
+    if(height && weight){
+        const hMeter = height / 100;
+        const bmi = (weight / (hMeter * hMeter)).toFixed(1);
+        document.getElementById("bmi").value = bmi;
+    }
+}
+
+document.getElementById("height").addEventListener("input", calculateBMI);
+document.getElementById("weight").addEventListener("input", calculateBMI);
+
+
+</script>
+
+</body>
+</html>

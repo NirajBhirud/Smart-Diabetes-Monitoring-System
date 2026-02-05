@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Diabetes Monitoring Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+
+body{
+    background:linear-gradient(135deg,#e3f2fd,#f8fbff);
+    padding:25px;
+}
+
+/* HEADER */
+.header{
+    text-align:center;
+    margin-bottom:25px;
+}
+.header h1{
+    color:#0b3c5d;
+}
+
+/* GRID LAYOUT */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+}
+
+/* CARDS */
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.card h3{
+    margin-bottom:15px;
+    color:#174a8b;
+}
+
+.live{
+    font-size:22px;
+    font-weight:600;
+}
+
+/* STATUS COLORS */
+.low{color:green}
+.medium{color:orange}
+.high{color:red}
+
+/* GRAPH SECTION */
+.full{
+    grid-column:1/3;
+}
+
+/* BUTTON */
+button{
+    padding:12px 25px;
+    border:none;
+    border-radius:8px;
+    background:#0b7285;
+    color:white;
+    cursor:pointer;
+}
+
+/* MOBILE RESPONSIVE */
+@media(max-width:900px){
+    .grid{grid-template-columns:1fr}
+    .full{grid-column:1}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📊 Smart Diabetes Monitoring Dashboard</h1>
+</div>
+
+<div class="grid">
+
+    <!-- USER INFO -->
+    <div class="card">
+        <h3>👤 Patient Info</h3>
+       <p>Name: <span id="pname">--</span></p>
+       <p>Age: <span id="page">--</span></p>
+
+    </div>
+
+    <!-- LIVE PANEL -->
+    <div class="card">
+        <h3>🔴 Live Panel</h3>
+        <p>Glucose: <span id="glucose" class="live"></span></p>
+        <p>Heart Rate: <span id="hr" class="live"></span></p>
+        <p>Activity: <span id="act" class="live"></span></p>
+    </div>
+
+    <!-- RISK PANEL -->
+    <div class="card">
+        <h3>⚠ Risk Panel</h3>
+        <p>Risk: <span id="risk" class="live"></span>%</p>
+        <p>Status: <span id="status" class="live"></span></p>
+    </div>
+
+    <!-- REPORT -->
+    <div class="card">
+        <h3>📄 Reports</h3>
+        <button onclick="window.location='/report'">Download Report</button>
+    </div>
+
+    <!-- GLUCOSE GRAPH -->
+    <div class="card full">
+        <h3>📈 Glucose vs Time</h3>
+        <canvas id="glucoseChart"></canvas>
+    </div>
+
+    <!-- HEART RATE GRAPH -->
+    <div class="card full">
+        <h3>❤️ Heart Rate vs Time</h3>
+        <canvas id="hrChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+let glucoseChart, hrChart;
+
+// Load history graphs
+async function loadHistory(){
+    const res = await fetch("/history");
+    const data = await res.json();
+
+    const times = data.map(d=>d.time);
+    const glucose = data.map(d=>d.glucose);
+    const hr = data.map(d=>d.heart_rate);
+
+    glucoseChart = new Chart(document.getElementById("glucoseChart"),{
+        type:'line',
+        data:{labels:times,datasets:[{label:"Glucose",data:glucose,borderWidth:3}]}
+    });
+
+    hrChart = new Chart(document.getElementById("hrChart"),{
+        type:'line',
+        data:{labels:times,datasets:[{label:"Heart Rate",data:hr,borderWidth:3}]}
+    });
+}
+
+
+async function loadUser(){
+    const res = await fetch("/user");
+    const data = await res.json();
+
+    document.getElementById("pname").innerText = data.name;
+    document.getElementById("page").innerText = data.age;
+}
+
+loadUser();
+
+
+// Load live data
+async function loadLive(){
+    const res = await fetch("/live");
+    const data = await res.json();
+
+    document.getElementById("glucose").innerText = data.glucose;
+    document.getElementById("hr").innerText = data.heart_rate;
+    document.getElementById("act").innerText = data.activity;
+    document.getElementById("risk").innerText = (data.probability*100).toFixed(1);
+
+    let status="",cls="";
+    if(data.probability<0.4){status="Low";cls="low"}
+    else if(data.probability<0.7){status="Medium";cls="medium"}
+    else{status="High";cls="high"; alert("⚠ High Risk Detected!")}
+
+    const s=document.getElementById("status");
+    s.innerText=status;
+    s.className="live "+cls;
+}
+
+loadUser();
+loadLive();
+loadHistory();
+setInterval(loadLive,5000);
+
+
+</script>
+
+</body>
+</html>
