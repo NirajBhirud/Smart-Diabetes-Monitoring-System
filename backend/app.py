@@ -1,21 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
 import joblib
 import numpy as np
 from datetime import datetime
-from flask import render_template
-from io import BytesIO
 
-from flask import send_file
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-
-
-
-
-
+# ---------------- LOAD ENV ----------------
 load_dotenv()
 
 app = Flask(__name__)
@@ -27,10 +18,8 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-
-
 # =========================================================
-# TABLE 1 → PREDICTION DATA (IoT readings)
+# TABLE 1 → PREDICTION DATA
 # =========================================================
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,12 +32,24 @@ class Prediction(db.Model):
     probability = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# =========================================================
+# TABLE 2 → AUTH TABLE
+# =========================================================
+class Auth(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(120))
+    email = db.Column(db.String(120), unique=True)
+    password = db.Column(db.String(120))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 # =========================================================
-# TABLE 2 → USER REGISTRATION (Dashboard form)
+# TABLE 3 → USER REGISTRATION TABLE
 # =========================================================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100))
+    email = db.Column(db.String(120))
     name = db.Column(db.String(100))
     age = db.Column(db.Integer)
     height = db.Column(db.Float)
@@ -56,13 +57,9 @@ class User(db.Model):
     bmi = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-
-# ---------------------------------------------------------
 # CREATE TABLES
-# ---------------------------------------------------------
 with app.app_context():
     db.create_all()
-
 
 # =========================================================
 # LOAD ML MODEL
@@ -71,36 +68,87 @@ model = joblib.load("ml_model/diabetes_model.pkl")
 scaler = joblib.load("ml_model/scaler.pkl")
 features = joblib.load("ml_model/feature_names.pkl")
 
-
 # =========================================================
 # ROUTES
 # =========================================================
 
 @app.route("/")
-def home():
-    return "✅ Diabetes Prediction API Running (ML + DB Connected)"
+def landing():
+    return render_template("landing.html")
 
+@app.route("/auth")
+def auth():
+    return render_template("auth.html")
 
-
+@app.route("/register_page")
+def register_page():
+    return render_template("register.html")
 
 @app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
 
+# =========================================================
+# SIGNUP
+# =========================================================
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.json
+
+    user = Auth(
+        email=data["email"],
+        password=data["password"]
+    )
+
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({"message": "Signup successful"})
 
 
-@app.route("/register_page")
-def register_page():
-    return render_template("register.html")
-# ---------------------------------------------------------
-# REGISTER ROUTE  (Your Form)
-# ---------------------------------------------------------
+# =========================================================
+# LOGIN
+# =========================================================
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+
+    user = Auth.query.filter_by(
+        email=data["email"],
+        password=data["password"]
+    ).first()
+
+    if user:
+        return jsonify({"message": "Login success"})
+    else:
+        return jsonify({"error": "Invalid credentials"})
+
+# =========================================================
+# GET LAST AUTH USER (For Auto-fill Register Page)
+# =========================================================
+@app.route("/get_auth_user")
+def get_auth_user():
+    user = Auth.query.order_by(Auth.created_at.desc()).first()
+
+    if not user:
+        return jsonify({"username": "", "email": ""})
+
+    return jsonify({
+        "username": user.username,
+        "email": user.email
+    })
+
+# =========================================================
+# REGISTER USER (From Register Page)
+# =========================================================
 @app.route("/register", methods=["POST"])
 def register():
     try:
         data = request.json
 
         user = User(
+            username=data["username"],
+            email=data["email"],
             name=data["name"],
             age=data["age"],
             height=data["height"],
@@ -112,55 +160,48 @@ def register():
         db.session.commit()
 
         return jsonify({
-            "message": "User Registered Successfully ✅",
+            "message": "User Registered Successfully",
             "user_id": user.id
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-# ---------------------------------------------------------
-# PREDICT ROUTE  (IoT → ML → DB)
-# ---------------------------------------------------------
+# =========================================================
+# PREDICT
+# =========================================================
 @app.route("/predict", methods=["POST"])
 def predict():
-    try:
-        data = request.json
+    data = request.json
 
-        values = np.array([[float(data[f]) for f in features]])
-        values = scaler.transform(values)
+    values = np.array([[float(data[f]) for f in features]])
+    values = scaler.transform(values)
 
-        pred = model.predict(values)[0]
-        prob = float(model.predict_proba(values)[0][1])
-        label = "Diabetic" if pred == 1 else "Non-Diabetic"
+    pred = model.predict(values)[0]
+    prob = float(model.predict_proba(values)[0][1])
+    label = "Diabetic" if pred == 1 else "Non-Diabetic"
 
-        record = Prediction(
-            glucose=data["Glucose"],
-            age=data["Age"],
-            bmi=data["BMI"],
-            heart_rate=data["HeartRate"],
-            activity=data["Activity"],
-            prediction=label,
-            probability=prob
-        )
+    record = Prediction(
+        glucose=data["Glucose"],
+        age=data["Age"],
+        bmi=data["BMI"],
+        heart_rate=data["HeartRate"],
+        activity=data["Activity"],
+        prediction=label,
+        probability=prob
+    )
 
-        db.session.add(record)
-        db.session.commit()
+    db.session.add(record)
+    db.session.commit()
 
-        return jsonify({
-            "prediction": label,
-            "probability": round(prob, 3)
-        })
+    return jsonify({
+        "prediction": label,
+        "probability": round(prob, 3)
+    })
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-
-# ---------------------------------------------------------
-# Live Data API (for Dashboard Live Panel)
-# ---------------------------------------------------------
+# =========================================================
+# LIVE DATA
+# =========================================================
 @app.route("/live")
 def live_data():
     record = Prediction.query.order_by(Prediction.created_at.desc()).first()
@@ -177,10 +218,9 @@ def live_data():
         "time": record.created_at.strftime("%H:%M:%S")
     })
 
-
-# ---------------------------------------------------------
-# Latest User Info (for Dashboard Patient Info)
-# ---------------------------------------------------------
+# =========================================================
+# USER INFO
+# =========================================================
 @app.route("/user")
 def latest_user():
     user = User.query.order_by(User.created_at.desc()).first()
@@ -193,42 +233,9 @@ def latest_user():
         "age": user.age
     })
 
-
-# ---------------------------------------------------------
-# REPORT DOWNLOAD ROUTE  (PDF)
-# ---------------------------------------------------------
-@app.route("/report")
-def report():
-    records = Prediction.query.order_by(Prediction.created_at.desc()).all()
-
-    buffer = BytesIO()   # memory file
-
-    doc = SimpleDocTemplate(buffer)
-    styles = getSampleStyleSheet()
-    elements = []
-
-    elements.append(Paragraph("Smart Diabetes Monitoring Report", styles['Title']))
-
-    for r in records:
-        line = f"{r.created_at} | Glucose: {r.glucose} | Risk: {round(r.probability*100,2)}%"
-        elements.append(Paragraph(line, styles['Normal']))
-
-    doc.build(elements)
-
-    buffer.seek(0)
-
-    return send_file(
-        buffer,
-        as_attachment=True,
-        download_name="Diabetes_Report.pdf",
-        mimetype='application/pdf'
-    )
-
-
-
-# ---------------------------------------------------------
-# HISTORY ROUTE  (Dashboard Graph)
-# ---------------------------------------------------------
+# =========================================================
+# HISTORY
+# =========================================================
 @app.route("/history")
 def history():
     records = Prediction.query.order_by(Prediction.created_at.desc()).all()
@@ -236,11 +243,8 @@ def history():
     result = [
         {
             "glucose": r.glucose,
-            "age": r.age,
-            "bmi": r.bmi,
             "heart_rate": r.heart_rate,
             "activity": r.activity,
-            "prediction": r.prediction,
             "probability": r.probability,
             "time": r.created_at.strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -249,6 +253,26 @@ def history():
 
     return jsonify(result)
 
+# =========================================================
+# REPORT DOWNLOAD
+# =========================================================
+@app.route("/report")
+def report():
+    user = User.query.order_by(User.created_at.desc()).first()
+    p = Prediction.query.order_by(Prediction.created_at.desc()).first()
 
+    if not user or not p:
+        return "No data available"
+
+    return render_template(
+        "report.html",
+        user=user,
+        p=p,
+        now=datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+        report_id=int(datetime.now().timestamp())
+    )
+
+
+# =========================================================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)

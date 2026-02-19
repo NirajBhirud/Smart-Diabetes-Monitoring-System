@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Diabetes Monitoring - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            color: #333;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle background pattern for uniqueness */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(186, 104, 200, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        /* 3D Sticker-like Elements */
+        .sticker {
+            position: absolute;
+            font-size: 2rem;
+            color: rgba(106, 27, 154, 0.2);
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .sticker:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+            transform: rotateY(15deg) rotateX(10deg);
+        }
+
+        .sticker:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            animation-delay: 2s;
+            transform: rotateY(-15deg) rotateX(-10deg);
+        }
+
+        .sticker:nth-child(3) {
+            bottom: 15%;
+            left: 20%;
+            animation-delay: 4s;
+            transform: rotateY(20deg) rotateX(-5deg);
+        }
+
+        .sticker:nth-child(4) {
+            bottom: 25%;
+            right: 10%;
+            animation-delay: 1s;
+            transform: rotateY(-20deg) rotateX(15deg);
+        }
+
+        .sticker:nth-child(5) {
+            top: 50%;
+            left: 5%;
+            animation-delay: 3s;
+            transform: rotateY(10deg) rotateX(-10deg);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateY(0deg) rotateX(0deg); }
+            50% { transform: translateY(-20px) rotateY(10deg) rotateX(5deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #6a1b9a 0%, #ba68c8 100%);
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(106, 27, 154, 0.3);
+            animation: slideDown 1s ease-out;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 20px solid #ba68c8;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* INTRO SECTION */
+        .intro {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #fafafa 0%, #f3e5f5 100%);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(106, 27, 154, 0.1);
+            margin-bottom: 40px;
+            transition: transform 0.3s ease;
+        }
+
+        .intro:hover {
+            transform: translateY(-5px);
+        }
+
+        .intro-text {
+            flex: 1;
+            padding-right: 40px;
+        }
+
+        .intro-text h2 {
+            font-size: 2rem;
+            color: #6a1b9a;
+            margin-bottom: 20px;
+        }
+
+        .intro-text p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .intro-image {
+            flex: 1;
+            text-align: center;
+        }
+
+        .intro-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.2);
+        }
+
+        /* BUTTONS */
+        .buttons {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 0 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #ba68c8, #6a1b9a);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #6a1b9a;
+            border: 2px solid #6a1b9a;
+        }
+
+        .btn-secondary:hover {
+            background: #6a1b9a;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* ILLUSTRATION SECTION */
+        .illustration {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #f8f5ff 0%, #f3e5f5 100%);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(106, 27, 154, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .illustration h2 {
+            font-size: 2rem;
+            color: #6a1b9a;
+            margin-bottom: 30px;
+        }
+
+        .illustration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .illustration-item {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .illustration-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
+        }
+
+        .illustration-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(106, 27, 154, 0.2);
+        }
+
+        .illustration-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .illustration-item h3 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .illustration-item p {
+            color: #666;
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #6a1b9a;
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .footer p {
+            font-size: 0.9rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .intro {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .intro-text {
+                padding-right: 0;
+                margin-bottom: 30px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .tagline {
+                font-size: 1.2rem;
+            }
+
+            .buttons .btn {
+                display: block;
+                margin: 10px auto;
+                width: 200px;
+            }
+
+            .sticker {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Sticker Elements -->
+    <div class="sticker"><i class="fas fa-heartbeat"></i></div>
+    <div class="sticker"><i class="fas fa-syringe"></i></div>
+    <div class="sticker"><i class="fas fa-chart-line"></i></div>
+    <div class="sticker"><i class="fas fa-pills"></i></div>
+    <div class="sticker"><i class="fas fa-stethoscope"></i></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1><i class="fas fa-heartbeat"></i> Smart Diabetes Monitoring</h1>
+            <p class="tagline">Empowering Lives Through Intelligent Health Tracking</p>
+        </div>
+
+        <!-- INTRO SECTION -->
+        <div class="intro">
+            <div class="intro-text">
+                <h2>About Our System</h2>
+                <p>Our Smart Diabetes Monitoring System uses advanced sensors and AI to provide real-time insights into glucose levels, heart rate, and activity. Track your health effortlessly, receive personalized recommendations, and stay ahead of diabetes with our intuitive dashboard. Designed for patients and doctors alike, it promotes proactive care and better outcomes.</p>
+            </div>
+            <div class="intro-image">
+                <img src="https://via.placeholder.com/500x300/ba68c8/ffffff?text=Dashboard+Preview" alt="Dashboard Illustration">
+            </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="buttons">
+            <a href="/auth" class="btn btn-primary">Sign Up</a>
+            <a href="/auth" class="btn btn-secondary">Sign In</a>
+        </div>
+
+        <!-- ILLUSTRATION SECTION -->
+        <div class="illustration">
+            <h2>Explore Our Features</h2>
+            <div class="illustration-grid">
+                <div class="illustration-item">
+                    <img src="https://via.placeholder.com/300x200/6a1b9a/ffffff?text=Glucose+Sensor" alt="Glucose Sensor">
+                    <h3>Real-Time Glucose Monitoring</h3>
+                    <p>Continuous tracking with wearable sensors for accurate blood sugar levels.</p>
+                </div>
+                <div class="illustration-item">
+                    <img src="https://via.placeholder.com/300x200/ba68c8/ffffff?text=Heart+Rate+Monitor" alt="Heart Rate Monitor">
+                    <h3>Heart Rate & Activity Tracking</h3>
+                    <p>Monitor cardiovascular health and daily steps for holistic insights.</p>
+                </div>
+                <div class="illustration-item">
+                    <img src="https://via.placeholder.com/300x200/e1bee7/000000?text=AI+Dashboard" alt="AI Dashboard">
+                    <h3>AI-Powered Dashboard</h3>
+                    <p>Visualize data with interactive charts and receive smart recommendations.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>&copy; 2023 Smart Diabetes Monitoring. All rights reserved. | Designed for Better Health</p>
+        </div>
+    </div>
+</body>
+</html>
