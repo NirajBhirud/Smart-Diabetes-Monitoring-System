@@ -385,6 +385,15 @@ function updateClock() {
     const now = new Date();
     document.getElementById("clock").innerText = "Last Update: " + now.toLocaleTimeString();
 }
+fetch("/predict", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    Glucose: 135,
+    HeartRate: 78,
+    Activity: 5200
+  })
+});
 
 // ==============================
 // LOAD USER INFO

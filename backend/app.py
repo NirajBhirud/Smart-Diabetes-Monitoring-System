@@ -1,3 +1,4 @@
+from flask import session
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
@@ -10,6 +11,7 @@ from datetime import datetime
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = "smart-diabetes-secret"
 
 # ---------------- DATABASE CONFIG ----------------
 app.config["SQLALCHEMY_DATABASE_URI"] = \
@@ -21,160 +23,188 @@ db = SQLAlchemy(app)
 # =========================================================
 # TABLE 1 → PREDICTION DATA
 # =========================================================
-class Prediction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    glucose = db.Column(db.Float, nullable=False)
-    age = db.Column(db.Integer, nullable=False)
-    bmi = db.Column(db.Float, nullable=False)
-    heart_rate = db.Column(db.Float, nullable=False)
-    activity = db.Column(db.Integer, nullable=False)
-    prediction = db.Column(db.String(20))
-    probability = db.Column(db.Float)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-# =========================================================
-# TABLE 2 → AUTH TABLE
-# =========================================================
 class Auth(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120))
-    email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(120))
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# =========================================================
-# TABLE 3 → USER REGISTRATION TABLE
-# =========================================================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100))
-    email = db.Column(db.String(120))
-    name = db.Column(db.String(100))
-    age = db.Column(db.Integer)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    gender = db.Column(db.String(10))
     height = db.Column(db.Float)
     weight = db.Column(db.Float)
     bmi = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# CREATE TABLES
+
+class Prediction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    glucose = db.Column(db.Float, nullable=False)
+    heart_rate = db.Column(db.Float, nullable=False)
+    activity = db.Column(db.Integer, nullable=False)
+
+    prediction = db.Column(db.String(20))
+    probability = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 with app.app_context():
     db.create_all()
 
-# =========================================================
+# ==============================
 # LOAD ML MODEL
-# =========================================================
+# ==============================
 model = joblib.load("ml_model/diabetes_model.pkl")
 scaler = joblib.load("ml_model/scaler.pkl")
-features = joblib.load("ml_model/feature_names.pkl")
 
-# =========================================================
+# ==============================
 # ROUTES
-# =========================================================
+# ==============================
 
 @app.route("/")
 def landing():
     return render_template("landing.html")
 
+
 @app.route("/auth")
 def auth():
     return render_template("auth.html")
+
 
 @app.route("/register_page")
 def register_page():
     return render_template("register.html")
 
+
 @app.route("/dashboard")
 def dashboard():
+    if "user_id" not in session:
+        return redirect("/auth")
     return render_template("dashboard.html")
 
-# =========================================================
+
+# ==============================
 # SIGNUP
-# =========================================================
+# ==============================
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.json
 
-    user = Auth(
+    if Auth.query.filter_by(email=data["email"]).first():
+        return jsonify({"error": "Email already exists"}), 409
+
+    auth = Auth(
         email=data["email"],
         password=data["password"]
     )
-
-    db.session.add(user)
+    db.session.add(auth)
     db.session.commit()
 
     return jsonify({"message": "Signup successful"})
 
 
-# =========================================================
+# ==============================
+# REGISTER (CREATE USER PROFILE)
+# ==============================
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+
+    if User.query.filter_by(email=data["email"]).first():
+        return jsonify({"error": "User already registered"}), 409
+
+    user = User(
+        email=data["email"],
+        name=data["name"],
+        age=data["age"],
+        gender=data.get("gender"),
+        height=data["height"],
+        weight=data["weight"],
+        bmi=data["bmi"]
+    )
+
+    db.session.add(user)
+    db.session.commit()
+
+    # Auto login after registration
+    session["user_id"] = user.id
+
+    return jsonify({"message": "User registered successfully"})
+
+
+# ==============================
 # LOGIN
-# =========================================================
+# ==============================
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
 
-    user = Auth.query.filter_by(
+    auth = Auth.query.filter_by(
         email=data["email"],
         password=data["password"]
     ).first()
 
-    if user:
-        return jsonify({"message": "Login success"})
-    else:
-        return jsonify({"error": "Invalid credentials"})
+    if not auth:
+        return jsonify({"error": "Invalid credentials"}), 401
 
-# =========================================================
-# GET LAST AUTH USER (For Auto-fill Register Page)
-# =========================================================
-@app.route("/get_auth_user")
-def get_auth_user():
-    user = Auth.query.order_by(Auth.created_at.desc()).first()
-
+    user = User.query.filter_by(email=auth.email).first()
     if not user:
-        return jsonify({"username": "", "email": ""})
+        return jsonify({"error": "User profile not found"}), 404
 
+    session["user_id"] = user.id
+    return jsonify({"message": "Login success"})
+
+
+# ==============================
+# LOGOUT
+# ==============================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/auth")
+
+
+# ==============================
+# USER INFO (DASHBOARD)
+# ==============================
+@app.route("/user")
+def user_info():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = User.query.get(session["user_id"])
     return jsonify({
-        "username": user.username,
-        "email": user.email
+        "name": user.name,
+        "age": user.age
     })
 
-# =========================================================
-# REGISTER USER (From Register Page)
-# =========================================================
-@app.route("/register", methods=["POST"])
-def register():
-    try:
-        data = request.json
 
-        user = User(
-            username=data["username"],
-            email=data["email"],
-            name=data["name"],
-            age=data["age"],
-            height=data["height"],
-            weight=data["weight"],
-            bmi=data["bmi"]
-        )
-
-        db.session.add(user)
-        db.session.commit()
-
-        return jsonify({
-            "message": "User Registered Successfully",
-            "user_id": user.id
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# =========================================================
-# PREDICT
-# =========================================================
+# ==============================
+# PREDICT (AGE & BMI FROM DB)
+# ==============================
 @app.route("/predict", methods=["POST"])
 def predict():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = User.query.get(session["user_id"])
     data = request.json
 
-    values = np.array([[float(data[f]) for f in features]])
+    values = np.array([[
+        float(data["Glucose"]),
+        user.age,
+        user.bmi,
+        float(data["HeartRate"]),
+        int(data["Activity"])
+    ]])
+
     values = scaler.transform(values)
 
     pred = model.predict(values)[0]
@@ -182,9 +212,8 @@ def predict():
     label = "Diabetic" if pred == 1 else "Non-Diabetic"
 
     record = Prediction(
+        user_id=user.id,
         glucose=data["Glucose"],
-        age=data["Age"],
-        bmi=data["BMI"],
         heart_rate=data["HeartRate"],
         activity=data["Activity"],
         prediction=label,
@@ -199,12 +228,18 @@ def predict():
         "probability": round(prob, 3)
     })
 
-# =========================================================
-# LIVE DATA
-# =========================================================
+
+# ==============================
+# LIVE DATA (USER-SPECIFIC)
+# ==============================
 @app.route("/live")
-def live_data():
-    record = Prediction.query.order_by(Prediction.created_at.desc()).first()
+def live():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    record = Prediction.query.filter_by(
+        user_id=session["user_id"]
+    ).order_by(Prediction.created_at.desc()).first()
 
     if not record:
         return jsonify({"error": "No data"})
@@ -214,54 +249,47 @@ def live_data():
         "heart_rate": record.heart_rate,
         "activity": record.activity,
         "probability": record.probability,
-        "prediction": record.prediction,
-        "time": record.created_at.strftime("%H:%M:%S")
+        "prediction": record.prediction
     })
 
-# =========================================================
-# USER INFO
-# =========================================================
-@app.route("/user")
-def latest_user():
-    user = User.query.order_by(User.created_at.desc()).first()
 
-    if not user:
-        return jsonify({"name": "--", "age": "--"})
-
-    return jsonify({
-        "name": user.name,
-        "age": user.age
-    })
-
-# =========================================================
+# ==============================
 # HISTORY
-# =========================================================
+# ==============================
 @app.route("/history")
 def history():
-    records = Prediction.query.order_by(Prediction.created_at.desc()).all()
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
 
-    result = [
+    records = Prediction.query.filter_by(
+        user_id=session["user_id"]
+    ).order_by(Prediction.created_at.desc()).all()
+
+    return jsonify([
         {
             "glucose": r.glucose,
             "heart_rate": r.heart_rate,
             "activity": r.activity,
             "probability": r.probability,
             "time": r.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        for r in records
-    ]
+        } for r in records
+    ])
 
-    return jsonify(result)
 
-# =========================================================
-# REPORT DOWNLOAD
-# =========================================================
+# ==============================
+# REPORT
+# ==============================
 @app.route("/report")
 def report():
-    user = User.query.order_by(User.created_at.desc()).first()
-    p = Prediction.query.order_by(Prediction.created_at.desc()).first()
+    if "user_id" not in session:
+        return redirect("/auth")
 
-    if not user or not p:
+    user = User.query.get(session["user_id"])
+    p = Prediction.query.filter_by(
+        user_id=user.id
+    ).order_by(Prediction.created_at.desc()).first()
+
+    if not p:
         return "No data available"
 
     return render_template(
@@ -273,6 +301,8 @@ def report():
     )
 
 
-# =========================================================
+# ==============================
+# RUN
+# ==============================
 if __name__ == "__main__":
     app.run(debug=True)

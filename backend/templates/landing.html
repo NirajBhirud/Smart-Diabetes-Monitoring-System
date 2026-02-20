@@ -287,12 +287,56 @@
 
         /* FOOTER */
         .footer {
-            text-align: center;
-            padding: 20px;
-            background: #6a1b9a;
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
+    text-align: center;
+    padding: 30px 20px;
+    background: #6a1b9a; /* SAME COLOR */
+    color: white;
+    border-radius: 20px 20px 0 0;
+}
+
+.footer-brand h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.footer-tagline {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    opacity: 0.85;
+    margin-bottom: 15px;
+}
+
+.footer-links {
+    margin: 15px 0;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    margin: 0 12px;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+    opacity: 1;
+}
+
+.footer-divider {
+    border: none;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 20px auto;
+    width: 80%;
+}
+
+.footer-copy {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
 
         .footer p {
             font-size: 0.9rem;
@@ -348,8 +392,21 @@
         <!-- INTRO SECTION -->
         <div class="intro">
             <div class="intro-text">
-                <h2>About Our System</h2>
-                <p>Our Smart Diabetes Monitoring System uses advanced sensors and AI to provide real-time insights into glucose levels, heart rate, and activity. Track your health effortlessly, receive personalized recommendations, and stay ahead of diabetes with our intuitive dashboard. Designed for patients and doctors alike, it promotes proactive care and better outcomes.</p>
+                <h2 style="text-align: center;">About Our System</h2>
+            <p style="text-align: justify;">
+            Our IoT-Based Smart Diabetes Monitoring & Prediction System integrates wearable sensors
+            and machine learning techniques to continuously monitor vital health parameters such as
+            glucose levels, heart rate, and physical activity. The collected sensor data is transmitted
+            in real time to a cloud-based backend system, where it is processed to assess the user’s
+            diabetes risk.
+            </p>
+
+            <p style="text-align: justify;">
+            The system provides a live and interactive dashboard for data visualization, risk analysis,
+            and early health alerts. This enables users and healthcare professionals to make proactive
+            and informed decisions, supporting effective and long-term diabetes management.
+            </p>
+
             </div>
             <div class="intro-image">
                 <img src="https://via.placeholder.com/500x300/ba68c8/ffffff?text=Dashboard+Preview" alt="Dashboard Illustration">
@@ -363,31 +420,68 @@
         </div>
 
         <!-- ILLUSTRATION SECTION -->
-        <div class="illustration">
-            <h2>Explore Our Features</h2>
-            <div class="illustration-grid">
-                <div class="illustration-item">
-                    <img src="https://via.placeholder.com/300x200/6a1b9a/ffffff?text=Glucose+Sensor" alt="Glucose Sensor">
-                    <h3>Real-Time Glucose Monitoring</h3>
-                    <p>Continuous tracking with wearable sensors for accurate blood sugar levels.</p>
-                </div>
-                <div class="illustration-item">
-                    <img src="https://via.placeholder.com/300x200/ba68c8/ffffff?text=Heart+Rate+Monitor" alt="Heart Rate Monitor">
-                    <h3>Heart Rate & Activity Tracking</h3>
-                    <p>Monitor cardiovascular health and daily steps for holistic insights.</p>
-                </div>
-                <div class="illustration-item">
-                    <img src="https://via.placeholder.com/300x200/e1bee7/000000?text=AI+Dashboard" alt="AI Dashboard">
-                    <h3>AI-Powered Dashboard</h3>
-                    <p>Visualize data with interactive charts and receive smart recommendations.</p>
-                </div>
-            </div>
+<div class="illustration">
+    <h2>Explore Our Features</h2>
+    <div class="illustration-grid">
+
+        <!-- Real-Time Glucose Monitoring -->
+        <div class="illustration-item">
+            <img src="{{ url_for('static', filename='images/Glucose_img.png') }}"
+                 alt="Real-Time Glucose Monitoring">
+            <h3>Real-Time Glucose Monitoring</h3>
+            <p>
+                Continuous glucose tracking using IoT-enabled wearable sensors
+                for accurate and real-time blood sugar monitoring.
+            </p>
         </div>
 
-        <!-- FOOTER -->
-        <div class="footer">
-            <p>&copy; 2023 Smart Diabetes Monitoring. All rights reserved. | Designed for Better Health</p>
+        <!-- Heart Rate & Activity Tracking -->
+        <div class="illustration-item">
+            <img src="{{ url_for('static', filename='images/heart_img.png') }}"
+                 alt="Heart Rate and Activity Tracking">
+            <h3>Heart Rate & Activity Tracking</h3>
+            <p>
+                Real-time monitoring of heart rate and physical activity to
+                assess cardiovascular health and lifestyle patterns.
+            </p>
         </div>
+
+        <!-- AI-Powered Dashboard -->
+        <div class="illustration-item">
+            <img src="{{ url_for('static', filename='images/dashboard_img.png') }}"
+                 alt="AI Powered Dashboard">
+            <h3>AI-Powered Dashboard</h3>
+            <p>
+                An intelligent dashboard that visualizes health data,
+                predicts diabetes risk using machine learning, and provides
+                actionable insights.
+            </p>
+        </div>
+
+    </div>
+</div>
+
+
+        <!-- FOOTER -->
+<div class="footer">
+    <div class="footer-brand">
+        <h3><i class="fas fa-chart-line"></i> Smart Diabetes</h3>
+        <p class="footer-tagline">DESIGNED FOR BETTER HEALTH</p>
+    </div>
+
+    <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Contact</a>
+    </div>
+
+    <hr class="footer-divider">
+
+    <p class="footer-copy">
+        © 2026 Smart Diabetes Monitoring System. All rights reserved.
+    </p>
+</div>
+
     </div>
 </body>
 </html>
