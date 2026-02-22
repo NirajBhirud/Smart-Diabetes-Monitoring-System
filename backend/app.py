@@ -6,7 +6,7 @@ import os
 import joblib
 import numpy as np
 from datetime import datetime
-
+from flask import redirect
 # ---------------- LOAD ENV ----------------
 load_dotenv()
 
@@ -48,12 +48,13 @@ class Prediction(db.Model):
 
     glucose = db.Column(db.Float, nullable=False)
     heart_rate = db.Column(db.Float, nullable=False)
-    activity = db.Column(db.Integer, nullable=False)
+
+    steps = db.Column(db.Integer, nullable=False)      # 👈 NEW
+    activity = db.Column(db.Integer, nullable=False)   # 0/1/2 (ML)
 
     prediction = db.Column(db.String(20))
     probability = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 
 with app.app_context():
     db.create_all()
@@ -67,7 +68,7 @@ scaler = joblib.load("ml_model/scaler.pkl")
 # ==============================
 # ROUTES
 # ==============================
-
+print("APP scaler features:", scaler.n_features_in_)
 @app.route("/")
 def landing():
     return render_template("landing.html")
@@ -107,7 +108,12 @@ def signup():
     db.session.add(auth)
     db.session.commit()
 
-    return jsonify({"message": "Signup successful"})
+    # 🔥 AUTO LOGIN (create session)
+    user = User.query.filter_by(email=data["email"]).first()
+    if user:
+        session["user_id"] = user.id
+
+    return jsonify({"message": "Signup & login successful"})
 
 
 # ==============================
@@ -179,13 +185,34 @@ def user_info():
     if "user_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
-    user = User.query.get(session["user_id"])
+    user = db.session.get(User, session["user_id"])
     return jsonify({
         "name": user.name,
         "age": user.age
     })
+def map_steps_to_activity(steps):
+    """
+    Convert raw step count to activity level
+    Must match training distribution: {0,1,2}
+    """
+    if steps < 5000:
+        return 0   # Sedentary
+    elif steps < 10000:
+        return 1   # Lightly active
+    else:
+        return 2   # Moderately active
+# ---- Clinical constants (MUST MATCH TRAINING) ----
+BASE_WEIGHTS = np.array([5.0, 1.2, 1.5, 0.9, 0.7, 4.0, 6.0, 8.0])
+ZONE_MULT    = {0: 1.0, 1: 1.5, 2: 3.0}
 
+GLUCOSE_IDX = 0   # "Glucose"
+ZONE_IDX    = 5   # "Glucose_Zone"
 
+def apply_weights(X):
+    Xw = X.copy().astype(float) * BASE_WEIGHTS
+    zones = X[:, ZONE_IDX].astype(int)
+    Xw[:, GLUCOSE_IDX] *= np.array([ZONE_MULT[z] for z in zones])
+    return Xw
 # ==============================
 # PREDICT (AGE & BMI FROM DB)
 # ==============================
@@ -194,28 +221,56 @@ def predict():
     if "user_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
-    user = User.query.get(session["user_id"])
-    data = request.json
+    user = db.session.get(User, session["user_id"])
+    data = request.json or {}
+
+    try:
+        glucose = float(data.get("Glucose"))
+        heart_rate = float(data.get("HeartRate"))
+        steps = int(data.get("Activity"))   # steps from frontend
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid or missing input data"}), 400
+    activity = map_steps_to_activity(steps)
+    # ---- SAME FEATURE ENGINEERING AS TRAINING ----
+    if glucose <= 99:
+        zone = 0
+    elif glucose <= 125:
+        zone = 1
+    else:
+        zone = 2
+
+    excess = max(0, glucose - 125)
+    is_diab = 1 if glucose >= 126 else 0
 
     values = np.array([[
-        float(data["Glucose"]),
+        glucose,
         user.age,
         user.bmi,
-        float(data["HeartRate"]),
-        int(data["Activity"])
+        heart_rate,
+        activity,
+        zone,
+        excess,
+        is_diab
     ]])
 
-    values = scaler.transform(values)
+    # Debug check (optional)
+    print("Input shape:", values.shape)
+    print("Scaler expects:", scaler.n_features_in_)
 
-    pred = model.predict(values)[0]
-    prob = float(model.predict_proba(values)[0][1])
+    values_weighted = apply_weights(values)
+    values_scaled   = scaler.transform(values_weighted)
+
+    pred = model.predict(values_scaled)[0]
+    prob = float(model.predict_proba(values_scaled)[0][1])
+
     label = "Diabetic" if pred == 1 else "Non-Diabetic"
 
     record = Prediction(
         user_id=user.id,
-        glucose=data["Glucose"],
-        heart_rate=data["HeartRate"],
-        activity=data["Activity"],
+        glucose=glucose,
+        heart_rate=heart_rate,
+        steps=steps,            # ✅ ADD THIS
+        activity=activity,
         prediction=label,
         probability=prob
     )
@@ -247,7 +302,8 @@ def live():
     return jsonify({
         "glucose": record.glucose,
         "heart_rate": record.heart_rate,
-        "activity": record.activity,
+        "steps": record.steps,          # ✅ REAL STEPS
+        "activity_level": record.activity,  # optional (debug/admin)
         "probability": record.probability,
         "prediction": record.prediction
     })
@@ -263,12 +319,13 @@ def history():
 
     records = Prediction.query.filter_by(
         user_id=session["user_id"]
-    ).order_by(Prediction.created_at.desc()).all()
+    ).order_by(Prediction.created_at.asc()).all()
 
     return jsonify([
         {
             "glucose": r.glucose,
             "heart_rate": r.heart_rate,
+            "steps": r.steps,          # ✅ ADD THIS
             "activity": r.activity,
             "probability": r.probability,
             "time": r.created_at.strftime("%Y-%m-%d %H:%M:%S")
@@ -284,7 +341,7 @@ def report():
     if "user_id" not in session:
         return redirect("/auth")
 
-    user = User.query.get(session["user_id"])
+    user = db.session.get(User, session["user_id"])
     p = Prediction.query.filter_by(
         user_id=user.id
     ).order_by(Prediction.created_at.desc()).first()

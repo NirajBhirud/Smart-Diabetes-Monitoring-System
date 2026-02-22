@@ -385,15 +385,6 @@ function updateClock() {
     const now = new Date();
     document.getElementById("clock").innerText = "Last Update: " + now.toLocaleTimeString();
 }
-fetch("/predict", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    Glucose: 135,
-    HeartRate: 78,
-    Activity: 5200
-  })
-});
 
 // ==============================
 // LOAD USER INFO
@@ -424,8 +415,7 @@ async function loadLive() {
 
         document.getElementById("glucose").innerText = data.glucose;
         document.getElementById("hr").innerText = data.heart_rate;
-        document.getElementById("act").innerText = data.activity;
-
+        document.getElementById("act").innerText = data.steps + " steps";
         const riskPercent = (data.probability * 100).toFixed(1);
         document.getElementById("risk").innerText = riskPercent;
 
@@ -440,7 +430,7 @@ async function loadLive() {
         let insight = "Stay hydrated and monitor your meals.";
         if(data.glucose > 140) insight = "High glucose: Opt for low-carb snacks.";
         if(data.heart_rate > 100) insight = "Elevated heart rate: Take a break and relax.";
-        if(data.activity < 5000) insight = "Low activity: Aim for a 30-min walk.";
+        if (data.steps < 5000) insight = "Low activity: Aim for a 30-min walk.";
         document.getElementById("insight").innerText = insight;
 
         // STATUS
@@ -490,7 +480,7 @@ async function loadHistory() {
         const times = data.map(d => d.time);
         const glucose = data.map(d => d.glucose);
         const hr = data.map(d => d.heart_rate);
-        const activity = data.map(d => d.activity);
+        const activity = data.map(d => d.steps);
 
         glucoseChart = new Chart(document.getElementById("glucoseChart"), {
             type: "line",
@@ -521,16 +511,29 @@ async function loadHistory() {
         });
 
         activityChart = new Chart(document.getElementById("activityChart"), {
-            type: "bar",
-            data: {
-                labels: times,
-                datasets: [{
-                    label: "Activity (steps)",
-                    data: activity,
-                    backgroundColor: "rgba(40,167,69,0.6)"
-                }]
+    type: "bar",
+    data: {
+        labels: times,
+        datasets: [{
+            label: "Activity (steps)",
+            data: activity,
+            backgroundColor: "rgba(40,167,69,0.6)"
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString();
+                    }
+                }
             }
-        });
+        }
+    }
+});
 
       } catch (err) {
         console.log("History load error:", err);
