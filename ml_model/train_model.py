@@ -384,48 +384,48 @@ print("  ml_model/feature_names.pkl")
 
 # Print the constants needed in test_model.py
 # These are just numbers — no pkl needed for them
-print("""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-COPY THIS INTO test_model.py  (paste as-is — no extra pkl)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-import joblib, numpy as np, pandas as pd
+# print("""
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# COPY THIS INTO test_model.py  (paste as-is — no extra pkl)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# import joblib, numpy as np, pandas as pd
 
-model    = joblib.load("ml_model/diabetes_model.pkl")
-scaler   = joblib.load("ml_model/scaler.pkl")
-features = joblib.load("ml_model/feature_names.pkl")
+# model    = joblib.load("ml_model/diabetes_model.pkl")
+# scaler   = joblib.load("ml_model/scaler.pkl")
+# features = joblib.load("ml_model/feature_names.pkl")
 
-# Clinical constants (ADA Standards of Care 2024)
-BASE_WEIGHTS = np.array([5.0, 1.2, 1.5, 0.9, 0.7, 4.0, 6.0, 8.0])
-ZONE_MULT    = {0: 1.0, 1: 1.5, 2: 3.0}
-GLUCOSE_IDX  = features.index("Glucose")
-ZONE_IDX     = features.index("Glucose_Zone")
+# # Clinical constants (ADA Standards of Care 2024)
+# BASE_WEIGHTS = np.array([5.0, 1.2, 1.5, 0.9, 0.7, 4.0, 6.0, 8.0])
+# ZONE_MULT    = {0: 1.0, 1: 1.5, 2: 3.0}
+# GLUCOSE_IDX  = features.index("Glucose")
+# ZONE_IDX     = features.index("Glucose_Zone")
 
-def engineer_glucose_features(glucose):
-    if   glucose <= 99:  zone = 0      # Normal
-    elif glucose <= 125: zone = 1      # Pre-Diabetic
-    else:                zone = 2      # Diabetic (ADA ≥126 mg/dL)
-    excess  = max(0, glucose - 125)
-    is_diab = 1 if glucose >= 126 else 0
-    return zone, excess, is_diab
+# def engineer_glucose_features(glucose):
+#     if   glucose <= 99:  zone = 0      # Normal
+#     elif glucose <= 125: zone = 1      # Pre-Diabetic
+#     else:                zone = 2      # Diabetic (ADA ≥126 mg/dL)
+#     excess  = max(0, glucose - 125)
+#     is_diab = 1 if glucose >= 126 else 0
+#     return zone, excess, is_diab
 
-def apply_weights(X_arr):
-    Xw = X_arr.copy().astype(float) * BASE_WEIGHTS
-    zones = X_arr[:, ZONE_IDX].astype(int)
-    Xw[:, GLUCOSE_IDX] *= np.array([ZONE_MULT[z] for z in zones])
-    return Xw
+# def apply_weights(X_arr):
+#     Xw = X_arr.copy().astype(float) * BASE_WEIGHTS
+#     zones = X_arr[:, ZONE_IDX].astype(int)
+#     Xw[:, GLUCOSE_IDX] *= np.array([ZONE_MULT[z] for z in zones])
+#     return Xw
 
-def predict(glucose, age, bmi, heart_rate, activity):
-    zone, excess, is_diab = engineer_glucose_features(glucose)
-    row = pd.DataFrame(
-        [[glucose, age, bmi, heart_rate, activity, zone, excess, is_diab]],
-        columns=features
-    )
-    X_scaled = scaler.transform(apply_weights(row.values))
-    pred     = model.predict(X_scaled)[0]
-    prob     = model.predict_proba(X_scaled)[0][1]
-    return pred, prob
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-""")
+# def predict(glucose, age, bmi, heart_rate, activity):
+#     zone, excess, is_diab = engineer_glucose_features(glucose)
+#     row = pd.DataFrame(
+#         [[glucose, age, bmi, heart_rate, activity, zone, excess, is_diab]],
+#         columns=features
+#     )
+#     X_scaled = scaler.transform(apply_weights(row.values))
+#     pred     = model.predict(X_scaled)[0]
+#     prob     = model.predict_proba(X_scaled)[0][1]
+#     return pred, prob
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# """)
 
 print("🎉 TRAINING COMPLETE")
 print("=" * 60)

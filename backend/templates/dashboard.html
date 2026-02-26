@@ -1,563 +1,528 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Smart Diabetes Monitoring Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
 
-        body {
-            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-            padding: 25px;
-            color: #333;
-            overflow-x: hidden;
-            position: relative;
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Smart Diabetes Monitoring Dashboard</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Lucide Icons (via CDN for visual elements) -->
+ <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style data-purpose="custom-theme">
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8F7FF;
+      color: #1E1B4B;
+    }
+    .bg-medical-gradient {
+      background: linear-gradient(135deg, #6366f1 0%, #5b9bfa 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .pulse-animation {
+      animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.02); }
+    }
+    .risk-gauge {
+      stroke-dasharray: 100;
+      stroke-dashoffset: 25; /* Medium Risk representation */
+      transition: stroke-dashoffset 1s ease-in-out;
+    }
+    .medical-bg-icon {
+      position: fixed;
+      z-index: -1;
+      opacity: 0.03;
+      pointer-events: none;
+    }
+  </style>
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'brand-purple': '#7C3AED',
+            'brand-dark': '#1E1B4B',
+            'medical-light': '#F8F7FF',
+          }
         }
-
-        /* Subtle background pattern for uniqueness */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle, rgba(186, 104, 200, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.3;
-            z-index: -1;
-        }
-
-        /* 3D Sticker-like Elements */
-        .sticker {
-            position: absolute;
-            font-size: 2rem;
-            color: rgba(106, 27, 154, 0.2);
-            animation: float 6s ease-in-out infinite;
-            z-index: -1;
-        }
-
-        .sticker:nth-child(1) {
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-            transform: rotateY(15deg) rotateX(10deg);
-        }
-
-        .sticker:nth-child(2) {
-            top: 20%;
-            right: 15%;
-            animation-delay: 2s;
-            transform: rotateY(-15deg) rotateX(-10deg);
-        }
-
-        .sticker:nth-child(3) {
-            bottom: 15%;
-            left: 20%;
-            animation-delay: 4s;
-            transform: rotateY(20deg) rotateX(-5deg);
-        }
-
-        .sticker:nth-child(4) {
-            bottom: 25%;
-            right: 10%;
-            animation-delay: 1s;
-            transform: rotateY(-20deg) rotateX(15deg);
-        }
-
-        .sticker:nth-child(5) {
-            top: 50%;
-            left: 5%;
-            animation-delay: 3s;
-            transform: rotateY(10deg) rotateX(-10deg);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotateY(0deg) rotateX(0deg); }
-            50% { transform: translateY(-20px) rotateY(10deg) rotateX(5deg); }
-        }
-
-        /* HEADER */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .header h1 {
-            color: #6a1b9a;
-            font-size: 2.5rem;
-            font-weight: 600;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 1s ease-in;
-        }
-
-        .header::after {
-            content: '';
-            display: block;
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
-            margin: 10px auto;
-            border-radius: 2px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* REAL-TIME CLOCK */
-        .clock {
-            font-size: 1rem;
-            color: #555;
-            margin-top: 10px;
-        }
-
-        /* GRID LAYOUT */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-        }
-
-        /* CARDS */
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(106, 27, 154, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #e0e0e0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(106, 27, 154, 0.15);
-        }
-
-        .card h3 {
-            margin-bottom: 20px;
-            color: #6a1b9a;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .card h3 i {
-            margin-right: 10px;
-            color: #6a1b9a;
-        }
-
-        .live {
-            font-size: 24px;
-            font-weight: 600;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* STATUS COLORS */
-        .low { color: #28a745; }
-        .medium { color: #ffc107; }
-        .high { color: #dc3545; }
-
-        /* RISK GAUGE */
-        .risk-gauge {
-            position: relative;
-            width: 100%;
-            height: 20px;
-            background: #e9ecef;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .risk-gauge .fill {
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-
-        /* GRAPH SECTION */
-        .full {
-            grid-column: 1/4;
-        }
-
-        /* BUTTON */
-        button {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s ease, transform 0.2s;
-        }
-
-        button:hover {
-            background: linear-gradient(90deg, #ba68c8, #6a1b9a);
-            transform: scale(1.05);
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
-        /* ALERTS */
-        .alert {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: none;
-            z-index: 1000;
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        /* NOTIFICATION BADGE */
-        .badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            display: none;
-        }
-
-        /* LOADING SPINNER */
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #6a1b9a;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* MOBILE RESPONSIVE */
-        @media (max-width: 900px) {
-            .grid { grid-template-columns: 1fr; }
-            .full { grid-column: 1; }
-            .header h1 { font-size: 2rem; }
-            .sticker { font-size: 1.5rem; }
-        }
-    </style>
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <!-- 3D Sticker Elements -->
-    <div class="sticker"><i class="fas fa-heartbeat"></i></div>
-    <div class="sticker"><i class="fas fa-syringe"></i></div>
-    <div class="sticker"><i class="fas fa-chart-line"></i></div>
-    <div class="sticker"><i class="fas fa-pills"></i></div>
-    <div class="sticker"><i class="fas fa-stethoscope"></i></div>
+<body class="min-h-screen overflow-x-hidden">
+<!-- BEGIN: Decorative Background Elements -->
+<div class="medical-bg-icon top-10 left-10">
+<svg fill="none" height="200" stroke="currentColor" stroke-width="0.5" viewbox="0 0 24 24" width="200"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+</div>
+<div class="medical-bg-icon bottom-20 right-10">
+<svg fill="none" height="300" stroke="currentColor" stroke-width="0.5" viewbox="0 0 24 24" width="300"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"></path></svg>
+</div>
+<!-- END: Decorative Background Elements -->
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-purple-100 px-6 py-4 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-3" data-purpose="branding">
+<div class="bg-brand-purple p-2 rounded-xl text-white">
+<i class="w-6 h-6" data-lucide="activity"></i>
+</div>
+<div>
+<h1 class="text-xl font-bold text-brand-dark tracking-tight">Smart Diabetes</h1>
+<p class="text-xs font-medium text-brand-purple/70 uppercase tracking-widest">Premium Monitoring</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right hidden md:block" data-purpose="real-time-clock">
+<p class="text-lg font-semibold text-brand-dark" id="current-time">10:45:22 AM</p>
+<p class="text-xs text-slate-500 font-medium" id="current-date">October 24, 2023</p>
+</div>
+<div class="flex items-center gap-3 border-l pl-6 border-purple-100">
+<button class="p-2 rounded-full hover:bg-purple-50 text-slate-400 relative">
+<i class="w-5 h-5" data-lucide="bell"></i>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+</button>
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-purple to-purple-400 p-0.5">
+<div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ5ZnmjI_PYSXAdQpKrwbkbd9rtCg8v61XPXWS-SBgKAKCrysFF9l0fHDfpLYN5D3dE6n2ZYX87R1QBTxKLBJMJb1EAGBNy3vhY_W_LPAuf85ak4DWCIn5UbvPSeI1JA2--dZiVrFn4Mkat6DkkSoFFy4H3ZEbcd3UQJvxd7_zCF89zHYXma8Bg2M8XO0YzP4IfffyoMaL2Ed_JzTX-L4pnS1THrXY2_FFayTeE00vsz0u0B3ES6HU7EhvcAwceHQ5firyV35AR6s"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<main class="max-w-[1600px] mx-auto p-6 space-y-6">
+<!-- BEGIN: Top Overview Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Patient Profile -->
+<section class="lg:col-span-5 glass-card rounded-3xl p-6 shadow-xl shadow-purple-900/5 flex flex-col justify-between" data-purpose="patient-info">
+<div class="space-y-4">
+<div class="flex items-start justify-between">
+<span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">ACTIVE</span>
+<button class="text-slate-400 hover:text-brand-purple transition-colors"><i data-lucide="more-horizontal"></i></button>
+</div>
+<div class="text-center py-4">
+<h2 class="text-2xl font-bold text-brand-dark">{{ user.name }}</h2>
+<p class="text-slate-500">ID: {{ user.user_id }}</p>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4">
+<div class="bg-medical-light p-3 rounded-2xl">
+<p class="font-bold text-brand-dark">{{ user.age }} Years</p>
+<p class="font-bold text-brand-dark">{{ user.gender }}</p>
+</div>
+<div class="bg-medical-light p-3 rounded-2xl">
+<p class="text-xs text-slate-400 mb-1">Gender</p>
+<p class="font-bold text-brand-dark">Male</p>
+</div>
+</div>
+</div>
+<a href="/report"
+   class="w-full mt-6 py-3 bg-brand-purple text-white rounded-2xl font-semibold hover:bg-brand-purple/90 transition-all flex items-center justify-center gap-2">
+  <i class="w-4 h-4" data-lucide="file-text"></i>
+  View Full History
+</a>
+</section>
+<!-- Live Data Panels -->
+<section class="lg:col-span-6 grid grid-cols-1 md:grid-cols-3 gap-4" data-purpose="live-data-stream">
+<!-- Glucose -->
+<div class="glass-card rounded-3xl p-5 shadow-lg border-l-4 border-brand-purple pulse-animation">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-purple-100 text-brand-purple rounded-lg">
+<i class="w-5 h-5" data-lucide="droplet"></i>
+</div>
+<span class="text-[10px] font-bold text-slate-400">REAL-TIME</span>
+</div>
+<p class="text-sm font-medium text-slate-500">Glucose</p>
+<div class="flex items-baseline gap-1">
+<h3 id="glucoseValue" class="text-4xl font-extrabold text-brand-dark">0</h3>
+<span class="text-xs font-bold text-slate-400">mg/dL</span>
+</div>
+<div class="mt-4 flex items-center gap-1 text-green-500 text-xs font-bold">
+<i class="w-3 h-3" data-lucide="trending-down"></i>
+<span>-2% Since 1hr</span>
+</div>
+</div>
+<!-- Heart Rate -->
+<div class="glass-card rounded-3xl p-5 shadow-lg border-l-4 border-red-400">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-red-100 text-red-500 rounded-lg">
+<i class="w-5 h-5" data-lucide="heart"></i>
+</div>
+<span class="text-[10px] font-bold text-slate-400">BPM</span>
+</div>
+<p class="text-sm font-medium text-slate-500">Heart Rate</p>
+<div class="flex items-baseline gap-1">
+<h3 id="heartRateValue" class="text-4xl font-extrabold text-brand-dark">0</h3><span class="text-xs font-bold text-slate-400">bpm</span>
+</div>
+<div class="mt-4 flex items-center gap-1 text-slate-400 text-xs font-bold">
+<i class="w-3 h-3" data-lucide="minus"></i>
+<span>Stable</span>
+</div>
+</div>
+<!-- Activity -->
+<div class="glass-card rounded-3xl p-5 shadow-lg border-l-4 border-blue-400">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-blue-100 text-blue-500 rounded-lg">
+<i class="w-5 h-5" data-lucide="footprints"></i>
+</div>
+<span class="text-[10px] font-bold text-slate-400">DAILY</span>
+</div>
+<p class="text-sm font-medium text-slate-500">Activity</p>
+<div class="flex items-baseline gap-1">
+<h3 id="stepsValue" class="text-4xl font-extrabold text-brand-dark">0</h3><span class="text-xs font-bold text-slate-400">steps</span>
+</div>
+<div class="mt-4 flex items-center gap-1 text-blue-500 text-xs font-bold">
+<i class="w-3 h-3" data-lucide="trending-up"></i>
+<span>64% of goal</span>
+</div>
+</div>
+</section>
+</div>
+<!-- END: Top Overview Grid -->
+<!-- BEGIN: Chart Sections -->
 
-    <div class="header">
-        <h1><i class="fas fa-chart-line"></i> Smart Diabetes Monitoring Dashboard</h1>
-        <div class="clock" id="clock">Last Update: --</div>
-    </div>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-    <div id="alert" class="alert">
-        <i class="fas fa-exclamation-triangle"></i> ⚠ High Risk Detected! Consult a doctor immediately.
-    </div>
+  <!-- LEFT COLUMN -->
+  <div class="flex flex-col gap-6">
 
-    <div class="grid">
-        <!-- USER INFO -->
-        <div class="card">
-            <h3><i class="fas fa-user-md"></i> Patient Info</h3>
-            <p><strong>Name:</strong> <span id="pname">--</span></p>
-            <p><strong>Age:</strong> <span id="page">--</span></p>
+    <!-- Glucose Chart -->
+    <section class="glass-card rounded-3xl p-6 shadow-lg h-[420px] flex flex-col">
+      <div class="mb-4">
+        <h3 class="text-lg font-bold text-brand-dark">Glucose vs Time</h3>
+        <p class="text-sm text-slate-400">Live Monitoring</p>
+      </div>
+
+      <div class="flex-grow">
+        <canvas id="glucoseChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Heart Rate -->
+    <section class="glass-card rounded-3xl p-6 shadow-lg h-[300px] flex flex-col">
+      <h3 class="text-md font-bold text-brand-dark mb-4">
+        Heart Rate
+      </h3>
+
+      <div class="flex-grow">
+        <canvas id="heartRateChart"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+
+  <!-- RIGHT COLUMN -->
+  <div class="flex flex-col gap-6">
+
+    <!-- Risk Assessment -->
+    <section class="glass-card rounded-3xl p-6 shadow-xl h-[420px] flex flex-col items-center justify-center text-center">
+      
+      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
+        Risk Assessment
+      </h3>
+
+      <div class="relative w-44 h-44 mb-6">
+        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="16" fill="none"
+            stroke="#E5E7EB" stroke-width="3"></circle>
+
+          <circle id="riskCircle"
+            cx="18" cy="18" r="16"
+            fill="none"
+            stroke="#10B981"
+            stroke-dasharray="100 100"
+            stroke-dashoffset="100"
+            stroke-linecap="round"
+            stroke-width="3">
+          </circle>
+        </svg>
+
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span id="riskLevel"
+            class="text-2xl font-bold text-brand-dark">
+            LOW
+          </span>
+
+          <span class="text-xl font-extrabold mt-1">
+            <span id="riskPercent">0%</span>
+          </span>
+
+          <span class="text-xs text-slate-500 font-bold">
+            LEVEL
+          </span>
         </div>
+      </div>
 
-        <!-- LIVE PANEL -->
-        <div class="card">
-            <h3><i class="fas fa-tachometer-alt"></i> Live Panel</h3>
-            <p><strong>Glucose:</strong> <span id="glucose" class="live">--</span> mg/dL</p>
-            <p><strong>Heart Rate:</strong> <span id="hr" class="live">--</span> bpm</p>
-            <p><strong>Activity:</strong> <span id="act" class="live">--</span> steps</p>
-            <div class="spinner" id="liveSpinner" style="display:none;"></div>
-        </div>
+      <div id="riskMessage"
+        class="px-4 py-2 rounded-xl font-bold text-sm">
+        Stable Condition
+      </div>
 
-        <!-- RISK PANEL -->
-        <div class="card">
-            <h3><i class="fas fa-exclamation-triangle"></i> Risk Panel</h3>
-            <p><strong>Risk:</strong> <span id="risk" class="live">--</span>%</p>
-            <p><strong>Status:</strong> <span id="status" class="live">--</span></p>
-            <div class="risk-gauge">
-                <div id="riskFill" class="fill"></div>
-            </div>
-            <div class="badge" id="riskBadge">!</div>
-        </div>
+    </section>
 
-        <!-- HEALTH SUMMARY -->
-        <div class="card">
-            <h3><i class="fas fa-heart"></i> Health Summary</h3>
-            <p><strong>BMI:</strong> <span id="bmi">--</span></p>
-            <p><strong>Overall Score:</strong> <span id="score" class="live">--</span>/100</p>
-            <p id="summary">--</p>
-        </div>
+    <!-- Steps Chart -->
+    <section class="glass-card rounded-3xl p-6 shadow-lg h-[300px] flex flex-col">
+      <h3 class="text-md font-bold text-brand-dark mb-4">
+        Daily Steps
+      </h3>
 
-        <!-- DAILY INSIGHTS -->
-        <div class="card">
-            <h3><i class="fas fa-lightbulb"></i> Daily Insights</h3>
-            <p id="insight">--</p>
-        </div>
+      <div class="flex-grow">
+        <canvas id="stepsChart"></canvas>
+      </div>
+    </section>
 
-        <!-- REPORT -->
-        <div class="card">
-            <h3><i class="fas fa-file-medical"></i> Reports</h3>
-            <button onclick="window.location='/report'"><i class="fas fa-download"></i> Download Report</button>
-        </div>
+  </div>
 
-        <!-- GLUCOSE GRAPH -->
-        <div class="card full">
-            <h3><i class="fas fa-chart-area"></i> Glucose vs Time (Medical Trend)</h3>
-            <canvas id="glucoseChart"></canvas>
-        </div>
+</div>
 
-        <!-- HEART RATE GRAPH -->
-        <div class="card full">
-            <h3><i class="fas fa-heartbeat"></i> Heart Rate vs Time (Cardiac Monitoring)</h3>
-            <canvas id="hrChart"></canvas>
-        </div>
-
-        <!-- ACTIVITY GRAPH -->
-        <div class="card full">
-            <h3><i class="fas fa-running"></i> Activity vs Time (Fitness Tracking)</h3>
-            <canvas id="activityChart"></canvas>
-        </div>
-    </div>
-
-<script>
-let glucoseChart, hrChart, activityChart;
-
-// Real-time clock
-function updateClock() {
-    const now = new Date();
-    document.getElementById("clock").innerText = "Last Update: " + now.toLocaleTimeString();
-}
-
-// ==============================
-// LOAD USER INFO
-// ==============================
-async function loadUser() {
-    try {
-        const res = await fetch("/user");
-        const data = await res.json();
-
-        document.getElementById("pname").innerText = data.name || "--";
-        document.getElementById("page").innerText = data.age || "--";
-    } catch (err) {
-        console.log("User load error:", err);
+<!-- END: Chart Sections -->
+<!-- BEGIN: Insights & Summary -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- AI Insights Card -->
+<section class="lg:col-span-2 glass-card rounded-3xl p-6 shadow-lg relative overflow-hidden" data-purpose="ai-insights">
+<div class="absolute -right-6 -top-6 w-32 h-32 bg-brand-purple/5 rounded-full blur-2xl"></div>
+<div class="flex items-center gap-3 mb-6">
+<div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg">
+<i class="w-5 h-5" data-lucide="sparkles"></i>
+</div>
+<h3 class="text-lg font-bold text-brand-dark">Smart AI Insights</h3>
+</div>
+<div class="space-y-4">
+<div class="flex gap-4 p-4 rounded-2xl bg-medical-light border-l-4 border-brand-purple">
+<div class="shrink-0 mt-1"><i class="w-5 h-5 text-brand-purple" data-lucide="check-circle-2"></i></div>
+<p class="text-sm text-brand-dark/80 leading-relaxed">
+<strong>Glucose Stabilization:</strong> Your glucose levels have remained within the target range for 85% of the day. Great job on maintaining your meal timing.
+            </p>
+</div>
+<div class="flex gap-4 p-4 rounded-2xl bg-amber-50 border-l-4 border-amber-400">
+<div class="shrink-0 mt-1"><i class="w-5 h-5 text-amber-500" data-lucide="alert-triangle"></i></div>
+<p class="text-sm text-brand-dark/80 leading-relaxed">
+<strong>Upcoming Peak:</strong> Based on your activity history, we predict a slight rise in glucose around 6:00 PM. Consider a light walk after dinner.
+            </p>
+</div>
+</div>
+</section>
+<!-- Health Summary Checklist -->
+<section class="glass-card rounded-3xl p-6 shadow-lg" data-purpose="health-summary">
+<h3 class="text-lg font-bold text-brand-dark mb-6">Daily Checklist</h3>
+<div class="space-y-4">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
+<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Morning Fasting Check</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
+<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Pre-Lunch Reading</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
+<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Afternoon Insulin Dose</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
+<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Evening Activity Goal</span>
+</label>
+</div>
+<div class="mt-8 p-4 bg-medical-light rounded-2xl">
+<div class="flex justify-between text-xs font-bold text-slate-400 mb-2">
+<span>DAILY PROGRESS</span>
+<span>50%</span>
+</div>
+<div class="w-full bg-white rounded-full h-2 overflow-hidden border">
+<div class="bg-brand-purple h-full w-1/2 rounded-full"></div>
+</div>
+</div>
+</section>
+</div>
+<!-- END: Insights & Summary -->
+</main>
+<footer class="p-8 text-center text-slate-400 text-xs font-medium uppercase tracking-widest border-t border-purple-50 mt-12">
+    © 2026 Smart Diabetes Monitoring System • Confidential Patient Data
+  </footer>
+<script data-purpose="initialize-icons">
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+<script data-purpose="live-clock">
+    function updateClock() {
+      const timeElement = document.getElementById('current-time');
+      const dateElement = document.getElementById('current-date');
+      const now = new Date();
+      
+      timeElement.textContent = now.toLocaleTimeString('en-US', { 
+        hour12: true, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      });
+      
+      dateElement.textContent = now.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
     }
-}
-
-// ==============================
-// LOAD LIVE DATA
-// ==============================
-async function loadLive() {
-    try {
-        document.getElementById("liveSpinner").style.display = "inline-block";
-
-        const res = await fetch("/live");
-        const data = await res.json();
-
-        if (data.error) return;
-
-        document.getElementById("glucose").innerText = data.glucose;
-        document.getElementById("hr").innerText = data.heart_rate;
-        document.getElementById("act").innerText = data.steps + " steps";
-        const riskPercent = (data.probability * 100).toFixed(1);
-        document.getElementById("risk").innerText = riskPercent;
-
-        // Calculate BMI and score
-        const bmi = ((data.weight || 60) / ((data.height || 165)/100)**2).toFixed(1);
-        document.getElementById("bmi").innerText = bmi;
-        const score = Math.max(0, 100 - riskPercent).toFixed(0);
-        document.getElementById("score").innerText = score;
-        document.getElementById("summary").innerText = score > 70 ? "Good Health" : "Needs Attention";
-
-        // Dynamic insights
-        let insight = "Stay hydrated and monitor your meals.";
-        if(data.glucose > 140) insight = "High glucose: Opt for low-carb snacks.";
-        if(data.heart_rate > 100) insight = "Elevated heart rate: Take a break and relax.";
-        if (data.steps < 5000) insight = "Low activity: Aim for a 30-min walk.";
-        document.getElementById("insight").innerText = insight;
-
-        // STATUS
-        let status = "", cls = "", color = "#28a745";
-
-        if (data.probability < 0.4) {
-            status = "Low";
-            cls = "low";
-            color = "#28a745";
-        } else if (data.probability < 0.7) {
-            status = "Medium";
-            cls = "medium";
-            color = "#ffc107";
-        } else {
-            status = "High";
-            cls = "high";
-            color = "#dc3545";
-            showAlert();
-            document.getElementById("riskBadge").style.display = "flex";
-        }
-
-        const s = document.getElementById("status");
-        s.innerText = status;
-        s.className = "live " + cls;
-
-        // Risk Gauge
-        const fill = document.getElementById("riskFill");
-        fill.style.width = riskPercent + "%";
-        fill.style.backgroundColor = color;
-
-        document.getElementById("liveSpinner").style.display = "none";
-        updateClock();
-
-    } catch (err) {
-        console.log("Live data error:", err);
-    }
-}
-
-// ==============================
-// LOAD HISTORY (GRAPHS)
-// ==============================
-async function loadHistory() {
-    try {
-        const res = await fetch("/history");
-        const data = await res.json();
-
-        const times = data.map(d => d.time);
-        const glucose = data.map(d => d.glucose);
-        const hr = data.map(d => d.heart_rate);
-        const activity = data.map(d => d.steps);
-
-        glucoseChart = new Chart(document.getElementById("glucoseChart"), {
-            type: "line",
-            data: {
-                labels: times,
-                datasets: [{
-                    label: "Glucose (mg/dL)",
-                    data: glucose,
-                    borderColor: "#6a1b9a",
-                    backgroundColor: "rgba(106,27,154,0.2)",
-                    fill: true
-                }]
-            }
-        });
-
-        hrChart = new Chart(document.getElementById("hrChart"), {
-            type: "line",
-            data: {
-                labels: times,
-                datasets: [{
-                    label: "Heart Rate (bpm)",
-                    data: hr,
-                    borderColor: "#dc3545",
-                    backgroundColor: "rgba(220,53,69,0.2)",
-                    fill: true
-                }]
-            }
-        });
-
-        activityChart = new Chart(document.getElementById("activityChart"), {
-    type: "bar",
-    data: {
-        labels: times,
-        datasets: [{
-            label: "Activity (steps)",
-            data: activity,
-            backgroundColor: "rgba(40,167,69,0.6)"
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return value.toLocaleString();
-                    }
-                }
-            }
-        }
-    }
+    
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+ <script>
+const labels = [];
+const glucoseData = [];
+const heartRateData = [];
+const stepsData = [];
+let lastDataSignature = null;
+// GLUCOSE CHART
+const glucoseChart = new Chart(document.getElementById("glucoseChart"), {
+  type: "line",
+  data: {
+    labels: labels,
+    datasets: [{
+      label: "Glucose (mg/dL)",
+      data: glucoseData,
+      borderColor: "#7C3AED",
+      backgroundColor: "rgba(124,58,237,0.15)",
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true,
+    animation: false,
+    scales: { y: { min: 60, max: 250 } }
+  }
 });
 
-      } catch (err) {
-        console.log("History load error:", err);
+// HEART RATE CHART
+const heartRateChart = new Chart(document.getElementById("heartRateChart"), {
+  type: "line",
+  data: {
+    labels: labels,
+    datasets: [{
+      label: "Heart Rate (BPM)",
+      data: heartRateData,
+      borderColor: "#EF4444",
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true,
+    animation: false,
+    scales: { y: { min: 40, max: 150 } }
+  }
+});
+
+// STEPS CHART
+const stepsChart = new Chart(document.getElementById("stepsChart"), {
+  type: "bar",
+  data: {
+    labels: labels,
+    datasets: [{
+      label: "Steps",
+      data: stepsData,
+      backgroundColor: "#3B82F6"
+    }]
+  },
+  options: {
+    responsive: true,
+    animation: false,
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+async function fetchLiveData() {
+  try {
+    const res = await fetch("/live");
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    // 🔐 Create a unique signature of sensor data
+    const currentSignature = `${data.glucose}-${data.heart_rate}-${data.steps}`;
+
+    // 🚫 If same data as last time → DO NOTHING
+    if (currentSignature === lastDataSignature) {
+      return;
     }
+
+    // ✅ New data arrived → update signature
+    lastDataSignature = currentSignature;
+
+    const time = new Date().toLocaleTimeString();
+
+    // ---- LIVE VALUES ----
+    document.getElementById("glucoseValue").innerText =
+      data.glucose.toFixed(1);
+
+    document.getElementById("heartRateValue").innerText =
+      data.heart_rate.toFixed(0);
+
+    document.getElementById("stepsValue").innerText =
+      data.steps;
+
+    // ---- RISK ----
+ const riskValue = data.probability * 100;
+const risk = riskValue.toFixed(1);
+
+document.getElementById("riskPercent").innerText = risk + "%";
+
+let level = "LOW";
+let color = "#10B981"; // green
+let message = "Stable Condition";
+
+if (riskValue > 70) {
+  level = "HIGH";
+  color = "#EF4444";
+  message = "High Risk Detected";
+}
+else if (riskValue > 40) {
+  level = "MODERATE";
+  color = "#F59E0B";
+  message = "Moderate Risk";
 }
 
-// ==============================
-// ALERT FUNCTION
-// ==============================
-function showAlert() {
-    const alert = document.getElementById("alert");
-    alert.style.display = "block";
-    setTimeout(() => alert.style.display = "none", 5000);
+document.getElementById("riskLevel").innerText = level;
+document.getElementById("riskMessage").innerText = message;
+document.getElementById("riskMessage").className =
+  "px-4 py-2 rounded-xl font-bold text-sm text-white";
+
+document.getElementById("riskMessage").style.backgroundColor = color;
+
+const circle = document.getElementById("riskCircle");
+circle.style.stroke = color;
+circle.style.strokeDashoffset = 100 - riskValue;
+
+    // ---- UPDATE CHARTS (ONLY NOW) ----
+    labels.push(time);
+    glucoseData.push(data.glucose);
+    heartRateData.push(data.heart_rate);
+    stepsData.push(data.steps);
+
+    if (labels.length > 20) {
+      labels.shift();
+      glucoseData.shift();
+      heartRateData.shift();
+      stepsData.shift();
+    }
+
+    glucoseChart.update();
+    heartRateChart.update();
+    stepsChart.update();
+
+  } catch (err) {
+    console.error("Live fetch error:", err);
+  }
 }
 
-// ==============================
-// INITIAL LOAD
-// ==============================
-loadUser();
-loadLive();
-loadHistory();
-setInterval(loadLive, 5000);
-setInterval(updateClock, 1000);
+setInterval(fetchLiveData, 3000);
+fetchLiveData();
 </script>
-
-</body>
-</html>
+</body></html>

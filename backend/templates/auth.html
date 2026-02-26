@@ -4,374 +4,940 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Diabetes Monitoring - Sign Up / Sign In</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+        /* ══════════════════════════════════════════
+           HEALTHCARE COLOR PALETTE
+           (matches medical report & register page)
+        ══════════════════════════════════════════ */
+        :root {
+            /* Trust Blues */
+            --blue-900:  #0C2D6B;
+            --blue-800:  #0845A3;
+            --blue-700:  #0B5FD6;
+            --blue-600:  #1A7AE8;
+            --blue-500:  #3B93F7;
+            --blue-200:  #BFDBFE;
+            --blue-100:  #DBEAFE;
+            --blue-50:   #EFF6FF;
+
+            /* Clinical Teals */
+            --teal-800:  #0A7060;
+            --teal-700:  #0D9488;
+            --teal-600:  #14B8A6;
+            --teal-200:  #99F6E4;
+            --teal-100:  #CCFBF1;
+            --teal-50:   #F0FDFA;
+
+            /* Alert Ambers */
+            --amber-700: #B45309;
+            --amber-600: #D97706;
+            --amber-100: #FEF3C7;
+            --amber-50:  #FFFBEB;
+
+            /* Alert Reds */
+            --red-700:   #B91C1C;
+            --red-600:   #DC2626;
+            --red-100:   #FEE2E2;
+
+            /* Success Greens */
+            --green-700: #047857;
+            --green-600: #059669;
+            --green-100: #D1FAE5;
+
+            /* Clean Whites & Grays */
+            --white:     #FFFFFF;
+            --gray-50:   #F8FAFC;
+            --gray-100:  #F1F5F9;
+            --gray-200:  #E2E8F0;
+            --gray-300:  #CBD5E1;
+            --gray-400:  #94A3B8;
+            --gray-500:  #64748B;
+            --gray-600:  #475569;
+            --gray-700:  #334155;
+            --gray-800:  #1E293B;
+            --gray-900:  #0F172A;
+
+            --page-bg:   #EDF2F7;
         }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         body {
-            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--page-bg);
+            color: var(--gray-800);
             min-height: 100vh;
-            padding: 20px;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
+            padding: 24px 20px;
+            position: relative;
         }
 
-        /* Subtle background pattern for uniqueness */
+        /* ── Subtle grid pattern ── */
         body::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(11,95,214,0.032) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11,95,214,0.032) 1px, transparent 1px);
+            background-size: 56px 56px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Soft background orbs ── */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: orb-drift 20s ease-in-out infinite;
+        }
+
+        .orb-blue {
+            width: 640px; height: 640px;
+            background: radial-gradient(circle, rgba(11,95,214,0.09), transparent 70%);
+            top: -220px; left: -220px;
+        }
+
+        .orb-teal {
+            width: 520px; height: 520px;
+            background: radial-gradient(circle, rgba(13,148,136,0.08), transparent 70%);
+            bottom: -200px; right: -200px;
+            animation-delay: -10s;
+        }
+
+        .orb-center {
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(11,95,214,0.05), transparent 70%);
+            top: 35%; left: 55%;
+            animation-delay: -5s;
+        }
+
+        @keyframes orb-drift {
+            0%,100% { transform: translate(0,0) scale(1); }
+            38%      { transform: translate(22px,-22px) scale(1.03); }
+            68%      { transform: translate(-16px,16px) scale(0.98); }
+        }
+
+        /* ── Layout ── */
+        .page {
+            position: relative;
+            z-index: 1;
             width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle, rgba(186, 104, 200, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.3;
-            z-index: -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        /* 3D Sticker-like Elements */
-        .sticker {
-            position: absolute;
-            font-size: 2rem;
-            color: rgba(106, 27, 154, 0.2);
-            animation: float 6s ease-in-out infinite;
-            z-index: -1;
-        }
-
-        .sticker:nth-child(1) {
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-            transform: rotateY(15deg) rotateX(10deg);
-        }
-
-        .sticker:nth-child(2) {
-            top: 20%;
-            right: 15%;
-            animation-delay: 2s;
-            transform: rotateY(-15deg) rotateX(-10deg);
-        }
-
-        .sticker:nth-child(3) {
-            bottom: 15%;
-            left: 20%;
-            animation-delay: 4s;
-            transform: rotateY(20deg) rotateX(-5deg);
-        }
-
-        .sticker:nth-child(4) {
-            bottom: 25%;
-            right: 10%;
-            animation-delay: 1s;
-            transform: rotateY(-20deg) rotateX(15deg);
-        }
-
-        .sticker:nth-child(5) {
-            top: 50%;
-            left: 5%;
-            animation-delay: 3s;
-            transform: rotateY(10deg) rotateX(-10deg);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotateY(0deg) rotateX(0deg); }
-            50% { transform: translateY(-20px) rotateY(10deg) rotateX(5deg); }
-        }
-
-        .auth-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(106, 27, 154, 0.2);
+        /* ══ TWO-COLUMN LAYOUT on wide screens ══ */
+        .auth-layout {
+            display: flex;
             width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            text-align: center;
-            animation: fadeIn 1s ease-in;
+            max-width: 900px;
+            gap: 0;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 4px 32px rgba(11,95,214,0.12), 0 1px 4px rgba(0,0,0,0.07);
+            animation: card-in 0.55s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        @keyframes card-in {
+            from { opacity: 0; transform: translateY(28px) scale(0.98); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        /* ── Left Panel (Branding / Info) ── */
+        .auth-panel {
+            width: 340px;
+            flex-shrink: 0;
+            background: linear-gradient(160deg, var(--blue-900) 0%, var(--blue-700) 55%, var(--teal-700) 100%);
+            padding: 44px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             position: relative;
             overflow: hidden;
+        }
+
+        /* Decorative rings */
+        .auth-panel::before {
+            content: '';
+            position: absolute;
+            bottom: -80px; right: -80px;
+            width: 260px; height: 260px;
+            border-radius: 50%;
+            border: 40px solid rgba(13,148,136,0.2);
+            pointer-events: none;
+        }
+
+        .auth-panel::after {
+            content: '';
+            position: absolute;
+            top: -60px; left: -60px;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            border: 30px solid rgba(255,255,255,0.06);
+            pointer-events: none;
+        }
+
+        .panel-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
             z-index: 1;
         }
 
-        .auth-container::before {
+        .panel-logo-mark {
+            width: 44px; height: 44px;
+            border-radius: 13px;
+            background: rgba(255,255,255,0.12);
+            border: 1.5px solid rgba(255,255,255,0.22);
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(6px);
+            flex-shrink: 0;
+        }
+
+        .panel-logo-mark svg { width: 26px; height: 26px; }
+
+        .panel-logo-text .brand {
+            display: block;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.3px;
+        }
+
+        .panel-logo-text .sub {
+            display: block;
+            font-size: 0.56rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Panel center content */
+        .panel-body { z-index: 1; }
+
+        .panel-body h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.4px;
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .panel-body p {
+            font-size: 0.87rem;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.65;
+            margin-bottom: 28px;
+        }
+
+        /* Feature pills */
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            backdrop-filter: blur(6px);
+        }
+
+        .feature-item .fi-icon {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.12);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .feature-item .fi-text {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+        }
+
+        /* Panel stats */
+        .panel-stats {
+            display: flex;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .panel-stat {
+            flex: 1;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .panel-stat .ps-num {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+        }
+
+        .panel-stat .ps-label {
+            font-size: 9.5px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-top: 3px;
+        }
+
+        /* ── Right Panel (Form) ── */
+        .auth-card {
+            flex: 1;
+            background: var(--white);
+            padding: 44px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Top teal accent bar (right side only) */
+        .auth-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--teal-700), var(--blue-600), var(--blue-700));
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* ── Heading ── */
+        .auth-heading {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            color: var(--gray-900);
+            margin-bottom: 5px;
         }
 
-        .auth-container h1 {
-            font-size: 2rem;
-            color: #6a1b9a;
-            margin-bottom: 10px;
+        .auth-heading span {
+            background: linear-gradient(135deg, var(--blue-700), var(--teal-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .auth-container p {
-            color: #666;
-            margin-bottom: 30px;
+        .auth-sub {
+            font-size: 0.87rem;
+            color: var(--gray-500);
+            margin-bottom: 24px;
+            line-height: 1.6;
         }
 
+        /* ── Health Status Pills ── */
+        .health-strip {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .hs-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 50px;
+            padding: 4px 11px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-500);
+        }
+
+        .hs-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        .hs-dot.green  { background: var(--green-600); box-shadow: 0 0 5px rgba(5,150,105,0.6); }
+        .hs-dot.blue   { background: var(--blue-600);  box-shadow: 0 0 5px rgba(11,95,214,0.5); animation-delay: 0.7s; }
+        .hs-dot.teal   { background: var(--teal-600);  box-shadow: 0 0 5px rgba(13,148,136,0.6); animation-delay: 1.4s; }
+
+        @keyframes blink {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.3; }
+        }
+
+        /* ── Toggle ── */
         .toggle {
             display: flex;
-            margin-bottom: 30px;
-            border-radius: 25px;
-            overflow: hidden;
-            background: #f0f0f0;
+            margin-bottom: 24px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 50px;
+            padding: 4px;
+            gap: 4px;
         }
 
         .toggle button {
             flex: 1;
-            padding: 10px;
+            padding: 9px 0;
             border: none;
+            border-radius: 50px;
             background: transparent;
             cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.87rem;
             font-weight: 600;
-            transition: background 0.3s ease;
+            color: var(--gray-500);
+            transition: all 0.25s ease;
         }
 
         .toggle button.active {
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
+            background: linear-gradient(135deg, var(--blue-800), var(--blue-600));
             color: white;
+            box-shadow: 0 2px 10px rgba(11,95,214,0.3);
         }
 
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
+        .toggle button:not(.active):hover {
+            color: var(--gray-700);
+            background: var(--gray-200);
         }
+
+        /* ── Form Groups ── */
+        .form-group { margin-bottom: 16px; }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            color: #333;
-            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap i.ico {
+            position: absolute;
+            left: 13px; top: 50%; transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 0.8rem;
+            pointer-events: none;
+            transition: color 0.2s ease;
+            z-index: 1;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            padding: 11px 13px 11px 38px;
+            background: var(--gray-50);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--gray-800);
+            outline: none;
+            transition: all 0.22s ease;
         }
+
+        .form-group input::placeholder { color: var(--gray-400); }
 
         .form-group input:focus {
-            border-color: #6a1b9a;
-            outline: none;
-            box-shadow: 0 0 5px rgba(106, 27, 154, 0.3);
+            border-color: var(--blue-500);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(11,95,214,0.1);
         }
 
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
+        .input-wrap:focus-within i.ico { color: var(--blue-600); }
+
+        /* Password eye toggle */
+        .eye-toggle {
+            position: absolute;
+            right: 13px; top: 50%; transform: translateY(-50%);
+            color: var(--gray-400);
             cursor: pointer;
-            margin-bottom: 15px;
-            transition: background 0.3s ease, transform 0.2s, box-shadow 0.3s;
+            font-size: 0.8rem;
+            transition: color 0.2s ease;
+            z-index: 2;
         }
 
-        .btn-primary {
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
+        .eye-toggle:hover { color: var(--blue-600); }
+
+        /* ── Forgot password ── */
+        .forgot-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -8px;
+            margin-bottom: 16px;
+        }
+
+        .forgot-row a {
+            font-size: 0.78rem;
+            color: var(--blue-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot-row a:hover { color: var(--blue-800); text-decoration: underline; }
+
+        /* ── Submit Button ── */
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.96rem;
+            font-weight: 700;
             color: white;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
+            box-shadow: 0 4px 16px rgba(11,95,214,0.35);
+            transition: all 0.25s ease;
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-primary:hover {
-            background: linear-gradient(90deg, #ba68c8, #6a1b9a);
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.3);
+        .btn-submit::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, var(--blue-700), var(--teal-700));
+            opacity: 0;
+            transition: opacity 0.25s ease;
         }
 
-        .btn-google {
-            background: #db4437;
-            color: white;
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(11,95,214,0.45); }
+        .btn-submit:hover::before { opacity: 1; }
+
+        .btn-submit span {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 16px;
+            color: var(--gray-400);
+            font-size: 0.76rem;
+            font-weight: 500;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        /* ── Google Button ── */
+        .btn-google {
+            width: 100%;
+            padding: 11px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--gray-600);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.22s ease;
         }
 
         .btn-google:hover {
-            background: #c23321;
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(219, 68, 55, 0.3);
+            border-color: var(--blue-300, #93C5FD);
+            color: var(--gray-800);
+            background: var(--blue-50);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(11,95,214,0.1);
         }
 
-        .btn-google i {
-            margin-right: 10px;
+        .google-icon {
+            width: 20px; height: 20px;
+            background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 90deg 270deg, #fbbc04 90deg);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.63rem;
+            color: white;
+            font-weight: 900;
+            flex-shrink: 0;
         }
 
-        .divider {
-            margin: 20px 0;
-            position: relative;
-            color: #666;
+        /* ── Auth Links ── */
+        .auth-links {
+            text-align: center;
+            margin-top: 18px;
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            align-items: center;
         }
 
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #ddd;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 10px;
-        }
-
-        .links {
-            margin-top: 20px;
-        }
-
-        .links a {
-            color: #6a1b9a;
+        .auth-links a {
+            color: var(--gray-400);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .links a:hover {
-            text-decoration: underline;
+        .auth-links a:hover { color: var(--blue-700); }
+        .auth-links span { color: var(--gray-300); font-size: 0.7rem; }
+
+        /* ── Error box ── */
+        .err-box {
+            background: var(--red-100);
+            border: 1px solid #FCA5A5;
+            border-left: 3px solid var(--red-600);
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-size: 0.83rem;
+            color: var(--red-700);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* RESPONSIVE */
+        /* ── Responsive ── */
+        @media (max-width: 760px) {
+            .auth-layout { flex-direction: column; border-radius: 18px; }
+            .auth-panel  {
+                width: 100%;
+                padding: 30px 28px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 20px;
+                align-items: center;
+            }
+            .panel-body  { display: none; }
+            .panel-stats { display: none; }
+            .auth-card   { padding: 30px 24px; }
+        }
+
         @media (max-width: 480px) {
-            .auth-container {
-                padding: 30px 20px;
-            }
-            .auth-container h1 {
-                font-size: 1.8rem;
-            }
-            .sticker {
-                font-size: 1.5rem;
-            }
+            .auth-heading { font-size: 1.35rem; }
+            .health-strip { display: none; }
         }
     </style>
 </head>
 <body>
-    <!-- 3D Sticker Elements -->
-    <div class="sticker"><i class="fas fa-heartbeat"></i></div>
-    <div class="sticker"><i class="fas fa-syringe"></i></div>
-    <div class="sticker"><i class="fas fa-chart-line"></i></div>
-    <div class="sticker"><i class="fas fa-pills"></i></div>
-    <div class="sticker"><i class="fas fa-stethoscope"></i></div>
 
-    <div class="auth-container">
-        <h1><i class="fas fa-heartbeat"></i> Smart Diabetes Monitoring</h1>
-        <p>Join us to monitor your health intelligently</p>
+<div class="bg-orb orb-blue"></div>
+<div class="bg-orb orb-teal"></div>
+<div class="bg-orb orb-center"></div>
 
-        <div class="toggle">
-            <button id="signup-toggle" class="active">Sign Up</button>
-            <button id="signin-toggle">Sign In</button>
-        </div>
+<div class="page">
+    <div class="auth-layout">
 
-        <form id="auth-form">
-            <div class="form-group" id="username-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+        <!-- ══ LEFT PANEL ══ -->
+        <div class="auth-panel">
+
+            <a href="/" class="panel-logo">
+                <div class="panel-logo-mark">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="13" y="4" width="6" height="24" rx="2" fill="url(#plg)" opacity="0.9"/>
+                        <rect x="4" y="13" width="24" height="6" rx="2" fill="url(#plg)" opacity="0.9"/>
+                        <polyline points="4,16 8,16 10,11 13,21 15,13 17,19 19,16 28,16"
+                            stroke="#14B8A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95"/>
+                        <defs>
+                            <linearGradient id="plg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#93C5FD"/>
+                                <stop offset="100%" stop-color="#0D9488"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="panel-logo-text">
+                    <span class="brand">Smart Diabetes</span>
+                    <span class="sub">Monitoring System</span>
+                </div>
+            </a>
+
+            <div class="panel-body">
+                <h2>Intelligent Health Monitoring</h2>
+                <p>Track your glucose, heart rate, SpO2 and activity in real-time with ML-powered risk analysis and personalised recommendations.</p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="fi-icon"><i class="fas fa-heartbeat"></i></div>
+                        <div class="fi-text">Real-time Glucose & Vitals Monitoring</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="fi-icon"><i class="fas fa-brain"></i></div>
+                        <div class="fi-text">ML-Powered Risk Prediction</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="fi-icon"><i class="fas fa-file-medical"></i></div>
+                        <div class="fi-text">Automated Clinical Reports</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="fi-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="fi-text">Secure and Private Health Data Storage</div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+
+            <div class="panel-stats">
+                <div class="panel-stat">
+                    <div class="ps-num">24/7</div>
+                    <div class="ps-label">Monitoring</div>
+                </div>
+                <div class="panel-stat">
+                    <div class="ps-num">80.1%</div>
+                    <div class="ps-label">Accuracy</div>
+                </div>
+                <div class="panel-stat">
+                    <div class="ps-num">AI</div>
+                    <div class="ps-label">Powered</div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+
+        </div><!-- /.auth-panel -->
+
+        <!-- ══ RIGHT CARD (FORM) ══ -->
+        <div class="auth-card">
+
+            <h1 class="auth-heading" id="form-heading">Welcome <span>Back</span></h1>
+            <p class="auth-sub" id="form-sub">Monitor your health intelligently — sign in to continue.</p>
+
+            <!-- Live health status pills -->
+            <div class="health-strip">
+                <div class="hs-pill"><div class="hs-dot green"></div> Glucose Monitoring</div>
+                <div class="hs-pill"><div class="hs-dot blue"></div> ML Risk Analysis</div>
+                <div class="hs-pill"><div class="hs-dot teal"></div> Live Sync</div>
             </div>
-            <button type="submit" class="btn btn-primary" id="submit-btn">Sign Up</button>
-        </form>
 
-        <div class="divider">
-            <span>or</span>
-        </div>
+            <!-- Toggle -->
+            <div class="toggle">
+                <button id="signup-toggle">Sign Up</button>
+                <button id="signin-toggle" class="active">Sign In</button>
+            </div>
 
-        <button class="btn btn-google" onclick="googleSignIn()">
-            <i class="fab fa-google"></i> Sign in with Google
-        </button>
+            <!-- Form -->
+            <form id="auth-form">
 
-        <div class="links">
-            <a href="index.html">Back to Home</a> | <a href="#">Forgot Password?</a>
-        </div>
-    </div>
+                <!-- Username (Sign Up only) -->
+                <div class="form-group" id="username-group" style="display:none;">
+                    <label>Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user ico"></i>
+                        <input type="text" id="username" name="username" placeholder="Choose a username">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope ico"></i>
+                        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrap" style="position:relative;">
+                        <i class="fas fa-lock ico"></i>
+                        <input type="password" id="password" name="password" placeholder="••••••••" required>
+                        <span class="eye-toggle" id="eyeToggle">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Forgot Password (Sign In only) -->
+                <div class="forgot-row" id="forgot-row">
+                    <a href="#">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submit-btn">
+                    <span id="btn-text">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </span>
+                </button>
+
+            </form>
+
+            <div class="divider">or continue with</div>
+
+            <button class="btn-google" onclick="googleSignIn()">
+                <div class="google-icon">G</div>
+                Sign in with Google
+            </button>
+
+            <div class="auth-links">
+                <a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                <span>·</span>
+                <a href="#">Help &amp; Support</a>
+            </div>
+
+        </div><!-- /.auth-card -->
+
+    </div><!-- /.auth-layout -->
+</div><!-- /.page -->
 
 <script>
-const signupToggle = document.getElementById('signup-toggle');
-const signinToggle = document.getElementById('signin-toggle');
-const usernameGroup = document.getElementById('username-group');
-const submitBtn = document.getElementById('submit-btn');
-const form = document.getElementById('auth-form');
+    /* ══════════════════════════════════════════════════
+       All API connections unchanged:
+       - Toggle Sign Up / Sign In
+       - fetch POST to /signup or /login (unchanged)
+       - localStorage.setItem for authUsername, authEmail
+       - redirect to /register_page or /dashboard
+       - googleSignIn() placeholder preserved
+    ══════════════════════════════════════════════════ */
 
-signupToggle.addEventListener('click', () => {
-    signupToggle.classList.add('active');
-    signinToggle.classList.remove('active');
-    usernameGroup.style.display = 'block';
-    submitBtn.textContent = 'Sign Up';
-});
+    /* ── Toggle Sign Up / Sign In ── */
+    const signupToggle  = document.getElementById('signup-toggle');
+    const signinToggle  = document.getElementById('signin-toggle');
+    const usernameGroup = document.getElementById('username-group');
+    const submitBtn     = document.getElementById('submit-btn');
+    const btnText       = document.getElementById('btn-text');
+    const formHeading   = document.getElementById('form-heading');
+    const formSub       = document.getElementById('form-sub');
+    const forgotRow     = document.getElementById('forgot-row');
 
-signinToggle.addEventListener('click', () => {
-    signinToggle.classList.add('active');
-    signupToggle.classList.remove('active');
-    usernameGroup.style.display = 'none';
-    submitBtn.textContent = 'Sign In';
-});
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
+    signupToggle.addEventListener('click', () => {
+        signupToggle.classList.add('active');
+        signinToggle.classList.remove('active');
+        usernameGroup.style.display = 'block';
+        btnText.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+        formHeading.innerHTML = 'Create <span>Account</span>';
+        formSub.textContent = 'Start monitoring your health intelligently today.';
+        forgotRow.style.display = 'none';
+    });
 
-    const isSignup = submitBtn.textContent === 'Sign Up';
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    signinToggle.addEventListener('click', () => {
+        signinToggle.classList.add('active');
+        signupToggle.classList.remove('active');
+        usernameGroup.style.display = 'none';
+        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+        formHeading.innerHTML = 'Welcome <span>Back</span>';
+        formSub.textContent = 'Monitor your health intelligently — sign in to continue.';
+        forgotRow.style.display = 'flex';
+    });
 
-    fetch(isSignup ? "/signup" : "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            username: username,
-            email: email,
-            password: password
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.message) {
+    /* ── Password Eye Toggle ── */
+    const eyeToggle = document.getElementById('eyeToggle');
+    const eyeIcon   = document.getElementById('eyeIcon');
+    const pwdInput  = document.getElementById('password');
 
-            // Store username & email for register page
-            localStorage.setItem("authUsername", username);
-            localStorage.setItem("authEmail", email);
-
-            if (isSignup) {
-                window.location.href = "/register_page";
-            } else {
-                window.location.href = "/dashboard";
-            }
+    eyeToggle.addEventListener('click', () => {
+        if (pwdInput.type === 'password') {
+            pwdInput.type = 'text';
+            eyeIcon.className = 'fas fa-eye-slash';
         } else {
-            alert(data.error);
+            pwdInput.type = 'password';
+            eyeIcon.className = 'fas fa-eye';
         }
     });
-});
 
+    /* ── Form Submit ── */
+    const form = document.getElementById('auth-form');
 
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const isSignup = signupToggle.classList.contains('active');
+        const username = document.getElementById('username').value;
+        const email    = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const btn          = document.getElementById('submit-btn');
+        const originalHTML = document.getElementById('btn-text').innerHTML;
+
+        // Loading state
+        document.getElementById('btn-text').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Please wait...';
+        btn.disabled     = true;
+        btn.style.opacity = '0.8';
+
+        fetch(isSignup ? '/signup' : '/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Server error: ' + res.status);
+            return res.json();
+        })
+        .then(data => {
+            if (data.message) {
+                localStorage.setItem('authUsername', username);
+                localStorage.setItem('authEmail', email);
+                document.getElementById('btn-text').innerHTML = '<i class="fas fa-check-circle"></i> Success! Redirecting...';
+                btn.style.background = 'linear-gradient(135deg, #047857, #059669)';
+                btn.style.opacity    = '1';
+                setTimeout(() => {
+                    window.location.href = isSignup ? '/register_page' : '/dashboard';
+                }, 600);
+            } else {
+                throw new Error(data.error || 'Something went wrong');
+            }
+        })
+        .catch(err => {
+            document.getElementById('btn-text').innerHTML = originalHTML;
+            btn.disabled     = false;
+            btn.style.opacity = '1';
+
+            // Remove old error
+            const old = document.getElementById('err-msg');
+            if (old) old.remove();
+
+            const errBox = document.createElement('div');
+            errBox.id = 'err-msg';
+            errBox.className = 'err-box';
+            errBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${err.message}`;
+            form.insertBefore(errBox, btn);
+            setTimeout(() => { if (errBox) errBox.remove(); }, 4000);
+        });
+    });
+
+    /* ── Google Sign In ── */
+    function googleSignIn() {
+        // Google OAuth handler — keep as-is
+    }
 </script>
 
 </body>

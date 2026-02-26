@@ -4,286 +4,879 @@
     <meta charset="UTF-8">
     <title>Smart Diabetes Monitoring - Register</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+        /* ══════════════════════════════════════════
+           HEALTHCARE COLOR PALETTE
+           (matches medical report exactly)
+        ══════════════════════════════════════════ */
+        :root {
+            /* Trust Blues */
+            --blue-900:  #0C2D6B;
+            --blue-800:  #0845A3;
+            --blue-700:  #0B5FD6;
+            --blue-600:  #1A7AE8;
+            --blue-500:  #3B93F7;
+            --blue-200:  #BFDBFE;
+            --blue-100:  #DBEAFE;
+            --blue-50:   #EFF6FF;
+
+            /* Clinical Teals */
+            --teal-800:  #0A7060;
+            --teal-700:  #0D9488;
+            --teal-600:  #14B8A6;
+            --teal-200:  #99F6E4;
+            --teal-100:  #CCFBF1;
+            --teal-50:   #F0FDFA;
+
+            /* Alert Ambers */
+            --amber-700: #B45309;
+            --amber-600: #D97706;
+            --amber-100: #FEF3C7;
+            --amber-50:  #FFFBEB;
+
+            /* Alert Reds */
+            --red-700:   #B91C1C;
+            --red-600:   #DC2626;
+            --red-100:   #FEE2E2;
+            --red-50:    #FFF5F5;
+
+            /* Success Greens */
+            --green-700: #047857;
+            --green-600: #059669;
+            --green-100: #D1FAE5;
+            --green-50:  #ECFDF5;
+
+            /* Clean Whites & Grays */
+            --white:     #FFFFFF;
+            --gray-50:   #F8FAFC;
+            --gray-100:  #F1F5F9;
+            --gray-200:  #E2E8F0;
+            --gray-300:  #CBD5E1;
+            --gray-400:  #94A3B8;
+            --gray-500:  #64748B;
+            --gray-600:  #475569;
+            --gray-700:  #334155;
+            --gray-800:  #1E293B;
+            --gray-900:  #0F172A;
+
+            --page-bg:   #EDF2F7;
+            --card-shadow: 0 4px 24px rgba(11,95,214,0.1), 0 1px 4px rgba(0,0,0,0.06);
         }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         body {
-            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--page-bg);
+            color: var(--gray-800);
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 20px;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* Subtle background pattern for uniqueness */
+        /* ── Subtle background pattern ── */
         body::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(11,95,214,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11,95,214,0.035) 1px, transparent 1px);
+            background-size: 56px 56px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Soft BG orbs ── */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: orb-drift 18s ease-in-out infinite;
+        }
+
+        .orb-blue {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(11,95,214,0.08), transparent 70%);
+            top: -200px; left: -200px;
+        }
+
+        .orb-teal {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(13,148,136,0.07), transparent 70%);
+            bottom: -180px; right: -180px;
+            animation-delay: -9s;
+        }
+
+        @keyframes orb-drift {
+            0%,100% { transform: translate(0,0) scale(1); }
+            40%      { transform: translate(20px,-20px) scale(1.03); }
+            70%      { transform: translate(-14px,14px) scale(0.98); }
+        }
+
+        /* ── Page z-index ── */
+        .page { position: relative; z-index: 1; width: 100%; display: flex; align-items: center; justify-content: center; }
+
+        /* ══ CARD ══ */
+        .reg-card {
             width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle, rgba(186, 104, 200, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.3;
-            z-index: -1;
-        }
-
-        /* 3D Sticker-like Elements */
-        .sticker {
-            position: absolute;
-            font-size: 2rem;
-            color: rgba(106, 27, 154, 0.2);
-            animation: float 6s ease-in-out infinite;
-            z-index: -1;
-        }
-
-        .sticker:nth-child(1) {
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-            transform: rotateY(15deg) rotateX(10deg);
-        }
-
-        .sticker:nth-child(2) {
-            top: 20%;
-            right: 15%;
-            animation-delay: 2s;
-            transform: rotateY(-15deg) rotateX(-10deg);
-        }
-
-        .sticker:nth-child(3) {
-            bottom: 15%;
-            left: 20%;
-            animation-delay: 4s;
-            transform: rotateY(20deg) rotateX(-5deg);
-        }
-
-        .sticker:nth-child(4) {
-            bottom: 25%;
-            right: 10%;
-            animation-delay: 1s;
-            transform: rotateY(-20deg) rotateX(15deg);
-        }
-
-        .sticker:nth-child(5) {
-            top: 50%;
-            left: 5%;
-            animation-delay: 3s;
-            transform: rotateY(10deg) rotateX(-10deg);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotateY(0deg) rotateX(0deg); }
-            50% { transform: translateY(-20px) rotateY(10deg) rotateX(5deg); }
-        }
-
-        .container {
-            background: white;
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(106, 27, 154, 0.2);
+            max-width: 540px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 22px;
+            padding: 44px 40px 40px;
+            box-shadow: var(--card-shadow);
             position: relative;
+            overflow: hidden;
+            animation: card-in 0.55s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        /* Blue top accent bar */
+        .reg-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--blue-900), var(--blue-700), var(--teal-700));
+            border-radius: 22px 22px 0 0;
+        }
+
+        /* Subtle teal corner accent */
+        .reg-card::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: -60px;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            border: 30px solid rgba(13,148,136,0.07);
+            pointer-events: none;
+        }
+
+        @keyframes card-in {
+            from { opacity: 0; transform: translateY(28px) scale(0.98); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        /* ══ LOGO ══ */
+        .reg-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 13px;
+            text-decoration: none;
+            margin-bottom: 28px;
+        }
+
+        .reg-logo-mark {
+            width: 46px; height: 46px;
+            border-radius: 13px;
+            background: linear-gradient(145deg, var(--blue-900), var(--blue-700));
+            border: 1.5px solid rgba(11,95,214,0.3);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(11,95,214,0.3);
+            flex-shrink: 0;
+        }
+
+        .reg-logo-mark svg { width: 26px; height: 26px; }
+
+        .reg-logo-text .brand {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.3px;
+        }
+
+        .reg-logo-text .sub {
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 600;
+            color: var(--gray-400);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ══ PROGRESS STEPS ══ */
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 28px;
+        }
+
+        .step-dot {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .step-dot.done {
+            background: linear-gradient(135deg, var(--blue-800), var(--blue-600));
+            color: white;
+            box-shadow: 0 0 12px rgba(11,95,214,0.35);
+        }
+
+        .step-dot.active {
+            background: linear-gradient(135deg, var(--blue-700), var(--teal-700));
+            color: white;
+            box-shadow: 0 0 18px rgba(11,95,214,0.4);
+            animation: step-pulse 2s ease-in-out infinite;
+        }
+
+        .step-dot.pending {
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            color: var(--gray-400);
+        }
+
+        @keyframes step-pulse {
+            0%,100% { box-shadow: 0 0 10px rgba(11,95,214,0.3); }
+            50%      { box-shadow: 0 0 22px rgba(11,95,214,0.6); }
+        }
+
+        .step-line {
+            width: 40px; height: 1px;
+            background: var(--gray-200);
+        }
+
+        .step-line.done { background: linear-gradient(90deg, var(--blue-600), var(--gray-200)); }
+
+        .step-label {
+            position: absolute;
+            top: 38px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--gray-400);
+            white-space: nowrap;
+        }
+
+        .step-dot.active .step-label { color: var(--blue-700); }
+        .step-dot.done  .step-label  { color: var(--teal-700); }
+
+        /* ══ HEADING ══ */
+        .reg-heading {
+            text-align: center;
+            font-size: 1.65rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--gray-900);
+            margin-bottom: 6px;
+        }
+
+        .reg-heading span {
+            background: linear-gradient(135deg, var(--blue-700), var(--teal-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .reg-sub {
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--gray-500);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* ══ SECTION LABELS ══ */
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--gray-400);
+            margin: 22px 0 14px;
+        }
+
+        .section-label .sl-icon {
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .section-label .sl-icon.blue { background: var(--blue-50);  color: var(--blue-700); }
+        .section-label .sl-icon.teal { background: var(--teal-50);  color: var(--teal-700); }
+
+        .section-label::after {
+            content: ''; flex: 1; height: 1px; background: var(--gray-200);
+        }
+
+        /* ══ FORM GRID ══ */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        /* ══ FORM GROUPS ══ */
+        .form-group { margin-bottom: 14px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap .ico {
+            position: absolute;
+            left: 13px; top: 50%; transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 0.8rem;
+            pointer-events: none;
+            transition: color 0.2s ease;
             z-index: 1;
+        }
+
+        .input-wrap input,
+        .input-wrap select {
+            width: 100%;
+            padding: 11px 13px 11px 38px;
+            background: var(--gray-50);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--gray-800);
+            outline: none;
+            transition: all 0.22s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-wrap input::placeholder { color: var(--gray-400); }
+
+        .input-wrap input:focus,
+        .input-wrap select:focus {
+            border-color: var(--blue-500);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(11,95,214,0.1);
+        }
+
+        .input-wrap:focus-within .ico { color: var(--blue-600); }
+
+        /* Readonly */
+        .input-wrap input[readonly] {
+            background: var(--gray-100);
+            color: var(--gray-500);
+            cursor: not-allowed;
+            border-color: var(--gray-200);
+        }
+
+        /* Select */
+        .select-arrow {
+            position: absolute;
+            right: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 0.68rem;
+            pointer-events: none;
+        }
+
+        .input-wrap select option { background: white; color: var(--gray-800); }
+
+        /* ══ BMI DISPLAY ══ */
+        .bmi-wrap {
+            background: var(--gray-50);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .bmi-circle {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            border: 3px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.3s ease;
+        }
+
+        .bmi-circle .bmi-num {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+
+        .bmi-circle .bmi-unit {
+            font-size: 0.58rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-400);
+            margin-top: 2px;
+        }
+
+        .bmi-info { flex: 1; }
+
+        .bmi-info .bmi-status {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gray-400);
+            margin-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .bmi-info .bmi-hint {
+            font-size: 11.5px;
+            color: var(--gray-400);
+            line-height: 1.5;
+        }
+
+        /* BMI range bar */
+        .bmi-bar-wrap {
+            margin-top: 6px;
+            height: 4px;
+            background: linear-gradient(90deg,
+                #DBEAFE 0%, #DBEAFE 25%,
+                #D1FAE5 25%, #D1FAE5 50%,
+                #FEF3C7 50%, #FEF3C7 75%,
+                #FEE2E2 75%, #FEE2E2 100%
+            );
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .bmi-bar-marker {
+            position: absolute;
+            top: -3px;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--gray-400);
+            border: 2px solid white;
+            transform: translateX(-50%);
+            transition: left 0.4s ease, background 0.3s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        /* ══ SUBMIT BUTTON ══ */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 11px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.97rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
+            box-shadow: 0 4px 16px rgba(11,95,214,0.35);
+            transition: all 0.25s ease;
+            margin-top: 22px;
+            position: relative;
             overflow: hidden;
         }
 
-        .container::before {
+        .btn-submit::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, var(--blue-700), var(--teal-700));
+            opacity: 0;
+            transition: opacity 0.25s ease;
         }
 
-        h2 {
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(11,95,214,0.45);
+        }
+
+        .btn-submit:hover::before { opacity: 1; }
+
+        .btn-inner {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        /* ══ BACK LINK ══ */
+        .back-link {
             text-align: center;
-            margin-bottom: 20px;
-            color: #6a1b9a;
-            font-size: 1.8rem;
+            margin-top: 18px;
         }
 
-        .input-box {
-            margin-bottom: 15px;
+        .back-link a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 0.83rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .input-box input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        .back-link a:hover { color: var(--blue-700); }
+
+        /* ══ ERROR BOX ══ */
+        .err-box {
+            background: var(--red-50);
+            border: 1px solid #FCA5A5;
+            border-left: 3px solid var(--red-600);
+            border-radius: 9px;
+            padding: 11px 14px;
+            font-size: 0.83rem;
+            color: var(--red-700);
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .input-box input:focus, .input-box select:focus {
-            border-color: #6a1b9a;
-            outline: none;
-            box-shadow: 0 0 5px rgba(106, 27, 154, 0.3);
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(90deg, #6a1b9a, #ba68c8);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: background 0.3s ease, transform 0.2s, box-shadow 0.3s;
-        }
-
-        button:hover {
-            background: linear-gradient(90deg, #ba68c8, #6a1b9a);
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(106, 27, 154, 0.3);
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-            }
-            h2 {
-                font-size: 1.5rem;
-            }
-            .sticker {
-                font-size: 1.5rem;
-            }
+        /* ══ RESPONSIVE ══ */
+        @media (max-width: 540px) {
+            .reg-card { padding: 32px 20px 28px; border-radius: 16px; }
+            .form-row  { grid-template-columns: 1fr; }
+            .reg-heading { font-size: 1.35rem; }
         }
     </style>
 </head>
 <body>
-    <!-- 3D Sticker Elements -->
-    <div class="sticker"><i class="fas fa-heartbeat"></i></div>
-    <div class="sticker"><i class="fas fa-syringe"></i></div>
-    <div class="sticker"><i class="fas fa-chart-line"></i></div>
-    <div class="sticker"><i class="fas fa-pills"></i></div>
-    <div class="sticker"><i class="fas fa-stethoscope"></i></div>
 
-    <div class="container">
-        <h2><i class="fas fa-user-plus"></i> User Registration</h2>
+<div class="bg-orb orb-blue"></div>
+<div class="bg-orb orb-teal"></div>
 
+<div class="page">
+    <div class="reg-card">
+
+        <!-- ── Logo ── -->
+        <a href="/" class="reg-logo">
+            <div class="reg-logo-mark">
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="13" y="4" width="6" height="24" rx="2" fill="url(#rlg)" opacity="0.9"/>
+                    <rect x="4" y="13" width="24" height="6" rx="2" fill="url(#rlg)" opacity="0.9"/>
+                    <polyline points="4,16 8,16 10,11 13,21 15,13 17,19 19,16 28,16"
+                        stroke="#14B8A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95"/>
+                    <defs>
+                        <linearGradient id="rlg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#3B93F7"/>
+                            <stop offset="100%" stop-color="#0D9488"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="reg-logo-text">
+                <span class="brand">Smart Diabetes</span>
+                <span class="sub">Monitoring System</span>
+            </div>
+        </a>
+
+        <!-- ── Progress Steps ── -->
+        <div class="progress-steps">
+            <div class="step-dot done">
+                <i class="fas fa-check" style="font-size:0.68rem;"></i>
+                <span class="step-label">Account</span>
+            </div>
+            <div class="step-line done"></div>
+            <div class="step-dot active">
+                2
+                <span class="step-label">Profile</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-dot pending">
+                3
+                <span class="step-label">Dashboard</span>
+            </div>
+        </div>
+
+        <!-- ── Heading ── -->
+        <h1 class="reg-heading">Complete Your <span>Profile</span></h1>
+        <p class="reg-sub">Help us personalise your health monitoring experience.</p>
+
+        <!-- ── Form ── -->
         <form id="regForm">
-            <!-- Auto-filled from Auth Page -->
-            <div class="input-box">
-                <input type="text" id="username" placeholder="Username" readonly>
+
+            <!-- Account Info -->
+            <div class="section-label">
+                <div class="sl-icon blue"><i class="fas fa-user-shield"></i></div>
+                Account Info
             </div>
 
-            <div class="input-box">
-                <input type="email" id="email" placeholder="Email" readonly>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user ico"></i>
+                        <input type="text" id="username" placeholder="Username" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope ico"></i>
+                        <input type="email" id="email" placeholder="Email" readonly>
+                    </div>
+                </div>
             </div>
 
-            <!-- Manual fields -->
-            <div class="input-box">
-                <input type="text" id="name" placeholder="Full Name" required>
+            <!-- Personal Details -->
+            <div class="section-label">
+                <div class="sl-icon blue"><i class="fas fa-id-card"></i></div>
+                Personal Details
             </div>
 
-            <div class="input-box">
-                <input type="number" id="age" placeholder="Age" required>
+            <div class="form-group">
+                <label>Full Name</label>
+                <div class="input-wrap">
+                    <i class="fas fa-id-card ico"></i>
+                    <input type="text" id="name" placeholder="Enter your full name" required>
+                </div>
             </div>
 
-            <div class="input-box">
-                <select id="gender" required>
-                    <option value="">Select Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Age</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-calendar-alt ico"></i>
+                        <input type="number" id="age" placeholder="Years" required min="1" max="120">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-venus-mars ico"></i>
+                        <select id="gender" required>
+                            <option value="">Select Gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                        <span class="select-arrow"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="input-box">
-                <input type="number" id="height" placeholder="Height (cm)" required>
+            <!-- Body Metrics -->
+            <div class="section-label">
+                <div class="sl-icon teal"><i class="fas fa-ruler"></i></div>
+                Body Metrics
             </div>
 
-            <div class="input-box">
-                <input type="number" id="weight" placeholder="Weight (kg)" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Height</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-ruler-vertical ico"></i>
+                        <input type="number" id="height" placeholder="cm" required min="50" max="300">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Weight</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-weight ico"></i>
+                        <input type="number" id="weight" placeholder="kg" required min="10" max="500">
+                    </div>
+                </div>
             </div>
 
-            <div class="input-box">
-                <input type="number" id="bmi" placeholder="BMI" readonly>
+            <!-- BMI Display -->
+            <div class="bmi-wrap" id="bmiWrap">
+                <div class="bmi-circle" id="bmiCircle">
+                    <div class="bmi-num" id="bmiNum">--</div>
+                    <div class="bmi-unit">BMI</div>
+                </div>
+                <div class="bmi-info">
+                    <div class="bmi-status" id="bmiStatus">Enter height &amp; weight</div>
+                    <div class="bmi-hint" id="bmiHint">Your BMI will be calculated automatically</div>
+                    <div class="bmi-bar-wrap" id="bmiBarWrap" style="display:none;">
+                        <div class="bmi-bar-marker" id="bmiMarker"></div>
+                    </div>
+                </div>
             </div>
 
-            <button type="submit">Register</button>
+            <!-- Hidden BMI input for form submission -->
+            <input type="hidden" id="bmi">
+
+            <!-- Submit -->
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <div class="btn-inner">
+                    <i class="fas fa-arrow-right"></i>
+                    Complete Registration
+                </div>
+            </button>
+
         </form>
-    </div>
+
+        <div class="back-link">
+            <a href="/auth"><i class="fas fa-arrow-left"></i> Back to Sign In</a>
+        </div>
+
+    </div><!-- /.reg-card -->
+</div><!-- /.page -->
 
 <script>
-// ========================================
-// 1️⃣ Auto Fill Username + Email
-// ========================================
-window.onload = function() {
-    document.getElementById("username").value =
-        localStorage.getItem("authUsername") || "";
+    /* ══════════════════════════════════════════════
+       All API connections unchanged:
+       - localStorage reads (authUsername, authEmail)
+       - BMI calculation logic identical
+       - fetch POST to /register with same payload
+       - redirect to /dashboard on success
+    ══════════════════════════════════════════════ */
 
-    document.getElementById("email").value =
-        localStorage.getItem("authEmail") || "";
-};
+    /* ── 1. Auto Fill Username + Email ── */
+    window.onload = function () {
+        document.getElementById("username").value = localStorage.getItem("authUsername") || "";
+        document.getElementById("email").value    = localStorage.getItem("authEmail")    || "";
+    };
 
-// ========================================
-// 2️⃣ BMI Auto Calculation
-// ========================================
-function calculateBMI(){
-    const height = document.getElementById("height").value;
-    const weight = document.getElementById("weight").value;
+    /* ── 2. BMI Auto Calculation ── */
+    function calculateBMI() {
+        const height  = parseFloat(document.getElementById("height").value);
+        const weight  = parseFloat(document.getElementById("weight").value);
+        const num     = document.getElementById("bmiNum");
+        const status  = document.getElementById("bmiStatus");
+        const hint    = document.getElementById("bmiHint");
+        const hidden  = document.getElementById("bmi");
+        const circle  = document.getElementById("bmiCircle");
+        const wrap    = document.getElementById("bmiWrap");
+        const barWrap = document.getElementById("bmiBarWrap");
+        const marker  = document.getElementById("bmiMarker");
 
-    if(height && weight){
-        const hMeter = height / 100;
-        const bmi = (weight / (hMeter * hMeter)).toFixed(1);
-        document.getElementById("bmi").value = bmi;
-    }
-}
+        if (height && weight && height > 0) {
+            const hm  = height / 100;
+            const bmi = (weight / (hm * hm)).toFixed(1);
+            hidden.value = bmi;
+            num.textContent = bmi;
 
-document.getElementById("height").addEventListener("input", calculateBMI);
-document.getElementById("weight").addEventListener("input", calculateBMI);
+            let color, borderColor, statusText, hintText, markerPct;
 
-// ========================================
-// 3️⃣ Submit Form
-// ========================================
-document.getElementById("regForm").addEventListener("submit", function(e){
-    e.preventDefault();
+            if (bmi < 18.5) {
+                color       = '#0B5FD6'; borderColor = '#3B93F7';
+                statusText  = 'Underweight';
+                hintText    = 'Consider a nutritionist-guided diet plan.';
+                markerPct   = Math.min((bmi / 18.5) * 25, 24);
+            } else if (bmi < 25) {
+                color       = '#059669'; borderColor = '#34D399';
+                statusText  = 'Normal Range';
+                hintText    = 'Great! Maintain your healthy lifestyle.';
+                markerPct   = 25 + ((bmi - 18.5) / 6.5) * 25;
+            } else if (bmi < 30) {
+                color       = '#D97706'; borderColor = '#FBBF24';
+                statusText  = 'Overweight';
+                hintText    = 'Moderate diet and exercise recommended.';
+                markerPct   = 50 + ((bmi - 25) / 5) * 25;
+            } else {
+                color       = '#DC2626'; borderColor = '#F87171';
+                statusText  = 'Obese';
+                hintText    = 'Please consult your physician.';
+                markerPct   = Math.min(75 + ((bmi - 30) / 10) * 25, 96);
+            }
 
-    fetch("/register",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-            username: document.getElementById("username").value,
-            email: document.getElementById("email").value,
-            name: document.getElementById("name").value,
-            age: document.getElementById("age").value,
-            gender: document.getElementById("gender").value,
-            height: document.getElementById("height").value,
-            weight: document.getElementById("weight").value,
-            bmi: document.getElementById("bmi").value
-        })
-    })
-    .then(res=>res.json())
-    .then(data=>{
-        if(data.message){
-            alert("Registration Successful!");
-            window.location.href="/dashboard";
+            num.style.color        = color;
+            circle.style.borderColor = borderColor;
+            status.style.color     = color;
+            status.textContent     = statusText;
+            hint.textContent       = hintText;
+            wrap.style.borderColor = borderColor;
+
+            barWrap.style.display  = 'block';
+            marker.style.left      = markerPct + '%';
+            marker.style.background = color;
+
         } else {
-            alert(data.error);
+            hidden.value = '';
+            num.textContent = '--';
+            num.style.color = '#94A3B8';
+            circle.style.borderColor = '#E2E8F0';
+            status.style.color = '#94A3B8';
+            status.textContent = 'Enter height & weight';
+            hint.textContent   = 'Your BMI will be calculated automatically';
+            wrap.style.borderColor = '#E2E8F0';
+            barWrap.style.display  = 'none';
         }
+    }
+
+    document.getElementById("height").addEventListener("input", calculateBMI);
+    document.getElementById("weight").addEventListener("input", calculateBMI);
+
+    /* ── 3. Submit Form ── */
+    document.getElementById("regForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const btn    = document.getElementById('submitBtn');
+        const inner  = btn.querySelector('.btn-inner');
+        const origHTML = inner.innerHTML;
+
+        // Loading state
+        inner.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled    = true;
+        btn.style.opacity = '0.8';
+
+        fetch("/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username : document.getElementById("username").value,
+                email    : document.getElementById("email").value,
+                name     : document.getElementById("name").value,
+                age      : document.getElementById("age").value,
+                gender   : document.getElementById("gender").value,
+                height   : document.getElementById("height").value,
+                weight   : document.getElementById("weight").value,
+                bmi      : document.getElementById("bmi").value
+            })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Server error: ' + res.status);
+            return res.json();
+        })
+        .then(data => {
+            if (data.message) {
+                inner.innerHTML = '<i class="fas fa-check-circle"></i> All set! Redirecting...';
+                btn.style.background = 'linear-gradient(135deg, #047857, #059669)';
+                btn.style.opacity    = '1';
+                setTimeout(() => { window.location.href = "/dashboard"; }, 700);
+            } else {
+                throw new Error(data.error || 'Registration failed');
+            }
+        })
+        .catch(err => {
+            inner.innerHTML  = origHTML;
+            btn.disabled     = false;
+            btn.style.opacity = '1';
+
+            // Remove old error if exists
+            const old = document.getElementById('err-msg');
+            if (old) old.remove();
+
+            const errBox = document.createElement('div');
+            errBox.id = 'err-msg';
+            errBox.className = 'err-box';
+            errBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${err.message}`;
+            btn.insertAdjacentElement('afterend', errBox);
+            setTimeout(() => { if (errBox) errBox.remove(); }, 4000);
+        });
     });
-});
 </script>
 
 </body>
