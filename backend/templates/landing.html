@@ -9,7 +9,6 @@
     <style>
         /* ══════════════════════════════════════════
            HEALTHCARE COLOR PALETTE
-           (matches report, dashboard, register, auth)
         ══════════════════════════════════════════ */
         :root {
             --blue-900:  #0C2D6B;
@@ -169,7 +168,6 @@
 
         .hero-left { flex:1; text-align:center; }
 
-        /* Hero eyebrow pill */
         .hero-pill {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 5px 16px 5px 6px;
@@ -191,7 +189,6 @@
         .hero-pill span { font-size: 0.82rem; font-weight: 500; color: var(--gray-600); }
         .hero-pill strong { color: var(--teal-700); }
 
-        /* Hero title */
         .hero-title {
             font-size: clamp(2.8rem,5vw,4.2rem); font-weight: 800;
             line-height: 1.1; letter-spacing: -1.5px;
@@ -214,7 +211,6 @@
             animation: fade-up 0.7s 0.2s ease both;
         }
 
-        /* CTA buttons */
         .hero-cta {
             display: flex; gap: 12px; align-items: center; justify-content: center;
             flex-wrap: wrap; margin-bottom: 52px;
@@ -239,9 +235,44 @@
         .btn-hero-secondary {
             background: var(--white); color: var(--gray-600);
             border: 1.5px solid var(--gray-200);
+            cursor: pointer;
         }
 
         .btn-hero-secondary:hover { color:var(--blue-700); border-color:var(--blue-300,#93C5FD); background:var(--blue-50); transform:translateY(-2px); }
+
+        /* ── Demo button pulse ring ── */
+        .btn-demo {
+            position: relative;
+            overflow: visible !important;
+        }
+
+        .btn-demo .demo-play-icon {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue-700), var(--teal-600));
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.62rem;
+            box-shadow: 0 2px 8px rgba(11,95,214,0.35);
+            flex-shrink: 0;
+            transition: transform 0.22s ease;
+        }
+
+        .btn-demo:hover .demo-play-icon { transform: scale(1.1); }
+
+        .btn-demo::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 20px;
+            transform: translate(-50%, -50%);
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(11,95,214,0.4);
+            animation: demo-pulse 1.8s ease-out infinite;
+        }
+
+        @keyframes demo-pulse {
+            0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+        }
 
         /* Stats */
         .hero-stats {
@@ -260,7 +291,140 @@
 
         @keyframes fade-up { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
 
-        /* hero card removed */
+        /* ══════════════════════════
+           VIDEO MODAL
+        ══════════════════════════ */
+        .video-modal-overlay {
+            position: fixed; inset: 0; z-index: 999;
+            background: rgba(10, 18, 38, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        .video-modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .video-modal-box {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: var(--gray-900);
+            border: 1.5px solid rgba(255,255,255,0.1);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(11,95,214,0.2);
+            transform: translateY(28px) scale(0.97);
+            transition: transform 0.38s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        .video-modal-overlay.open .video-modal-box {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Top bar */
+        .video-modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.04);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .video-modal-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.88rem; font-weight: 600; color: rgba(255,255,255,0.8);
+        }
+
+        .video-modal-title span {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--teal-600);
+            box-shadow: 0 0 8px var(--teal-600);
+            animation: live-blink 1.4s ease-in-out infinite;
+        }
+
+        @keyframes live-blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+        .video-modal-close {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .video-modal-close:hover {
+            background: rgba(220,38,38,0.2);
+            border-color: rgba(220,38,38,0.4);
+            color: #FCA5A5;
+        }
+
+        /* Video wrapper — 16:9 */
+        .video-ratio-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background: #000;
+        }
+
+        .video-ratio-wrap video,
+        .video-ratio-wrap iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Placeholder shown when no video src */
+        .video-placeholder {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 16px;
+            background: linear-gradient(135deg, #0C2D6B 0%, #0D9488 100%);
+        }
+
+        .video-placeholder-icon {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; color: white;
+        }
+
+        .video-placeholder p {
+            color: rgba(255,255,255,0.7); font-size: 0.92rem; text-align: center; line-height: 1.6;
+        }
+
+        .video-placeholder strong { color: white; display: block; font-size: 1.05rem; margin-bottom: 4px; }
+
+        /* Bottom bar */
+        .video-modal-footer {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .vf-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+        }
+        .vf-dot-r { background: #FF5F57; }
+        .vf-dot-y { background: #FEBC2E; }
+        .vf-dot-g { background: #28C840; }
+
+        .vf-label {
+            margin-left: 8px; font-size: 0.75rem;
+            color: rgba(255,255,255,0.35); font-family: 'DM Mono', monospace;
+        }
 
         /* ══ MARQUEE ══ */
         .marquee-section {
@@ -437,7 +601,6 @@
             background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
         }
 
-        /* Decorative ring inside stats */
         .stats-glass::after {
             content:''; position:absolute; bottom:-80px;right:-80px;
             width:280px;height:280px; border-radius:50%;
@@ -468,7 +631,6 @@
 
         .step:hover { background:var(--white); border:1px solid var(--gray-200); box-shadow:0 4px 18px rgba(11,95,214,0.09); }
 
-        /* Connector line */
         .step-connector {
             position:absolute; top:46px; left:calc(50% + 28px);
             width:calc(100% - 56px); height:1.5px;
@@ -610,7 +772,6 @@
             .hero-stats { flex-direction:column; gap:18px; align-items:center; }
             .stat-div { display:none; }
             .stats-glass { grid-template-columns:1fr; }
-
         }
     </style>
 </head>
@@ -619,6 +780,85 @@
 <div class="bg-orb orb-blue"></div>
 <div class="bg-orb orb-teal"></div>
 <div class="bg-orb orb-mid"></div>
+
+<!-- ══════════════════════════
+     VIDEO MODAL
+══════════════════════════ -->
+<div class="video-modal-overlay" id="videoModal">
+    <div class="video-modal-box">
+        <!-- Header -->
+        <div class="video-modal-header">
+            <div class="video-modal-title">
+                <span></span>
+                Smart Diabetes Monitoring · Demo
+            </div>
+            <button class="video-modal-close" id="modalClose" aria-label="Close video">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- 16:9 Video area -->
+        <div class="video-ratio-wrap">
+            <!--
+                ╔══════════════════════════════════════════════════╗
+                ║  HOW TO USE THIS VIDEO PLAYER:                   ║
+                ║                                                  ║
+                ║  OPTION A — Upload your own video file:          ║
+                ║  1. Place your video (e.g. demo.mp4) in your     ║
+                ║     Flask static/videos/ folder                  ║
+                ║  2. Replace the <video> tag src below with:      ║
+                ║     {{ url_for('static', filename='videos/demo.mp4') }} ║
+                ║                                                  ║
+                ║  OPTION B — YouTube embed:                       ║
+                ║  Remove the <video> tag and uncomment the        ║
+                ║  <iframe> tag below, replacing VIDEO_ID with     ║
+                ║  your YouTube video ID.                          ║
+                ║                                                  ║
+                ║  OPTION C — Direct video URL:                    ║
+                ║  Set src="https://yourserver.com/demo.mp4"       ║
+                ╚══════════════════════════════════════════════════╝
+            -->
+
+            <!-- ── OPTION A: Local video file ── -->
+            <video
+                id="demoVideo"
+                controls
+                playsinline
+                preload="none"
+                src="{{ url_for('static', filename='videos/demo.mp4') }}"
+                style="background:#000;"
+            ></video>
+
+            <!-- ── OPTION B: YouTube embed (uncomment & set VIDEO_ID) ──
+            <iframe
+                id="demoVideo"
+                src="https://www.youtube.com/embed/VIDEO_ID?autoplay=1&rel=0"
+                allow="autoplay; fullscreen"
+                allowfullscreen
+            ></iframe>
+            -->
+
+            <!-- Fallback placeholder (hidden when video loads) -->
+            <div class="video-placeholder" id="videoPlaceholder" style="display:none;">
+                <div class="video-placeholder-icon"><i class="fas fa-play"></i></div>
+                <p>
+                    <strong>Demo Video</strong>
+                    Upload your demo video to<br>
+                    <code style="color:var(--teal-200);font-size:0.8rem;">static/videos/demo.mp4</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer bar -->
+        <div class="video-modal-footer">
+            <div class="vf-dot vf-dot-r"></div>
+            <div class="vf-dot vf-dot-y"></div>
+            <div class="vf-dot vf-dot-g"></div>
+            <span class="vf-label">smart-diabetes-demo.mp4</span>
+        </div>
+    </div>
+</div>
+
 
 <div class="page">
 
@@ -680,12 +920,15 @@
 
             <p class="hero-desc">Wearable IoT sensors fused with machine learning — continuously tracking glucose, heart rate, SpO2 and activity to predict diabetes risk in real time.</p>
 
-
-
             <!-- CTA -->
             <div class="hero-cta">
                 <a href="/auth" class="btn-hero btn-hero-primary"><i class="fas fa-user-plus"></i> Get Started Free</a>
-                <a href="#about" class="btn-hero btn-hero-secondary"><i class="fas fa-play-circle"></i> See How It Works</a>
+
+                <!-- ★ CHANGED: "See How It Works" → "See Demo" with video modal trigger -->
+                <button class="btn-hero btn-hero-secondary btn-demo" id="openDemoBtn" type="button">
+                    <div class="demo-play-icon"><i class="fas fa-play"></i></div>
+                    See Demo
+                </button>
             </div>
 
             <!-- Stats -->
@@ -730,11 +973,10 @@
             <div class="about-body">
                 <div class="section-eyebrow">About Our System</div>
                 <h2 class="section-heading">Proactive Care <em>Powered by Data</em></h2>
-                <p>Our IoT-Based Smart Diabetes Monitoring & Prediction System integrates wearable sensors and machine learning to continuously monitor vital health parameters — glucose, heart rate, SpO2 and physical activity.</p>
+                <p>Our IoT-Based Smart Diabetes Monitoring &amp; Prediction System integrates wearable sensors and machine learning to continuously monitor vital health parameters — glucose, heart rate, SpO2 and physical activity.</p>
                 <p>Collected data streams in real time to a Flask backend where AI models assess your diabetes risk, enabling proactive and informed decisions for users and healthcare professionals alike.</p>
                 <ul class="check-list">
                     <li><div class="check-icon"><i class="fas fa-check"></i></div>Continuous real-time sensor data collection</li>
-                    <!-- <li><div class="check-icon"><i class="fas fa-check"></i></div>Cloud-based processing &amp; secure storage</li> -->
                     <li><div class="check-icon"><i class="fas fa-check"></i></div>ML-powered diabetes risk assessment</li>
                     <li><div class="check-icon"><i class="fas fa-check"></i></div>Early health anomaly alerts</li>
                 </ul>
@@ -757,7 +999,7 @@
     <div class="container">
         <div class="section-center reveal">
             <div class="section-eyebrow">Features</div>
-            <h2 class="section-heading">Everything  You Need to <em>Stay Healthy</em></h2>
+            <h2 class="section-heading">Everything You Need to <em>Stay Healthy</em></h2>
         </div>
         <div class="features-grid reveal">
 
@@ -805,7 +1047,7 @@
 <section class="stats-section">
     <div class="container">
         <div class="stats-glass reveal">
-            <div class="stat-item"><div class="stat-big" data-target="10000">0</div><div class="stat-name">Active Users</div></div>
+            <div class="stat-item"><div class="stat-big" id="userCountStat">0+</div><div class="stat-name">Active Users</div></div>
             <div class="stat-item"><div class="stat-big">80.1%</div><div class="stat-name">Prediction Accuracy</div></div>
             <div class="stat-item"><div class="stat-big">24/7</div><div class="stat-name">Live Monitoring</div></div>
             <div class="stat-item"><div class="stat-big">&lt;5ms</div><div class="stat-name">Response Latency</div></div>
@@ -913,23 +1155,87 @@
         });
     });
 
-    /* ── Counter animation ── */
-    const counter = document.querySelector('[data-target]');
-    if (counter) {
-        const obs = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting) {
-                let count = 0;
-                const target = +counter.dataset.target;
-                const step = target / 80;
-                const tick = setInterval(() => {
-                    count = Math.min(count + step, target);
-                    counter.textContent = Math.floor(count).toLocaleString() + '+';
-                    if (count >= target) clearInterval(tick);
-                }, 20);
-                obs.disconnect();
-            }
-        }, { threshold: 0.5 });
-        obs.observe(counter);
+   /* ── Dynamic user count ── */
+const userCountEl = document.getElementById('userCountStat');
+if (userCountEl) {
+    const obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+            fetch('/api/user-count')
+                .then(res => res.json())
+                .then(data => {
+                    const target = data.count || 0;
+                    if (target === 0) {
+                        userCountEl.textContent = '0+';
+                        return;
+                    }
+                    let count = 0;
+                    const step = target / 80;
+                    const tick = setInterval(() => {
+                        count = Math.min(count + step, target);
+                        userCountEl.textContent = Math.floor(count).toLocaleString() + '+';
+                        if (count >= target) clearInterval(tick);
+                    }, 20);
+                })
+                .catch(() => {
+                    userCountEl.textContent = '0+';
+                });
+            obs.disconnect();
+        }
+    }, { threshold: 0.5 });
+    obs.observe(userCountEl);
+}
+    /* ════════════════════════════════
+       VIDEO MODAL LOGIC
+    ════════════════════════════════ */
+    const modal       = document.getElementById('videoModal');
+    const openBtn     = document.getElementById('openDemoBtn');
+    const closeBtn    = document.getElementById('modalClose');
+    const demoVideo   = document.getElementById('demoVideo');
+
+    function openModal() {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        // Auto-play if it's a <video> element
+        if (demoVideo && demoVideo.tagName === 'VIDEO') {
+            demoVideo.play().catch(() => {/* user gesture required in some browsers */});
+        }
+    }
+
+    function closeModal() {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        // Pause & reset video
+        if (demoVideo && demoVideo.tagName === 'VIDEO') {
+            demoVideo.pause();
+            demoVideo.currentTime = 0;
+        }
+        // Stop YouTube iframe by resetting src
+        if (demoVideo && demoVideo.tagName === 'IFRAME') {
+            const src = demoVideo.src;
+            demoVideo.src = '';
+            demoVideo.src = src;
+        }
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    // Close on overlay backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+
+    // Show placeholder if video file is missing / errors
+    if (demoVideo && demoVideo.tagName === 'VIDEO') {
+        demoVideo.addEventListener('error', () => {
+            demoVideo.style.display = 'none';
+            document.getElementById('videoPlaceholder').style.display = 'flex';
+        });
     }
 </script>
 

@@ -1,528 +1,795 @@
 <!DOCTYPE html>
-
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Smart Diabetes Monitoring Dashboard</title>
-<!-- Tailwind CSS v3 with Plugins -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts: Inter -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<!-- Lucide Icons (via CDN for visual elements) -->
- <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-<script src="https://unpkg.com/lucide@latest"></script>
-<style data-purpose="custom-theme">
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #F8F7FF;
-      color: #1E1B4B;
-    }
-    .bg-medical-gradient {
-      background: linear-gradient(135deg, #6366f1 0%, #5b9bfa 100%);
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .pulse-animation {
-      animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    @keyframes pulse-soft {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.02); }
-    }
-    .risk-gauge {
-      stroke-dasharray: 100;
-      stroke-dashoffset: 25; /* Medium Risk representation */
-      transition: stroke-dashoffset 1s ease-in-out;
-    }
-    .medical-bg-icon {
-      position: fixed;
-      z-index: -1;
-      opacity: 0.03;
-      pointer-events: none;
-    }
-  </style>
-<script data-purpose="tailwind-config">
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'brand-purple': '#7C3AED',
-            'brand-dark': '#1E1B4B',
-            'medical-light': '#F8F7FF',
-          }
-        }
-      }
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --blue-900:#0C2D6B;--blue-800:#0845A3;--blue-700:#0B5FD6;--blue-600:#1A7AE8;
+    --blue-500:#3B93F7;--blue-200:#BFDBFE;--blue-100:#DBEAFE;--blue-50:#EFF6FF;
+    --teal-700:#0D9488;--teal-600:#14B8A6;--teal-100:#CCFBF1;--teal-50:#F0FDFA;
+    --page-bg:#EDF2F7;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--page-bg);color:#1E293B;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(11,95,214,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(11,95,214,0.025) 1px,transparent 1px);
+    background-size:56px 56px;}
+  .bg-orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;animation:orb-drift 20s ease-in-out infinite;}
+  .orb-blue{width:600px;height:600px;background:radial-gradient(circle,rgba(11,95,214,0.06),transparent 70%);top:-200px;left:-200px;}
+  .orb-teal{width:500px;height:500px;background:radial-gradient(circle,rgba(13,148,136,0.05),transparent 70%);bottom:-180px;right:-180px;animation-delay:-10s;}
+  @keyframes orb-drift{0%,100%{transform:translate(0,0) scale(1)}38%{transform:translate(20px,-20px) scale(1.03)}68%{transform:translate(-14px,14px) scale(0.98)}}
+  main,header,footer{position:relative;z-index:1;}
+  .glass-card{background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.6);box-shadow:0 4px 24px rgba(11,95,214,0.08);}
+  .pulse-animation{animation:pulse-soft 2s cubic-bezier(0.4,0,0.6,1) infinite;}
+  @keyframes pulse-soft{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.88;transform:scale(1.015)}}
+  header{background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--blue-100);box-shadow:0 1px 12px rgba(11,95,214,0.07);}
+
+  .avatar-ring{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--blue-900),var(--teal-600));padding:2px;cursor:pointer;position:relative;transition:transform 0.22s ease,box-shadow 0.22s ease;}
+  .avatar-ring:hover{transform:scale(1.06);box-shadow:0 4px 16px rgba(11,95,214,0.35);}
+  .avatar-inner{width:100%;height:100%;border-radius:50%;background:white;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .avatar-inner img{width:100%;height:100%;object-fit:cover;display:none;}
+  .avatar-placeholder{font-size:1rem;font-weight:700;color:var(--blue-700);}
+
+  .profile-dropdown{position:absolute;top:calc(100% + 12px);right:0;width:290px;background:white;border-radius:18px;border:1px solid var(--blue-100);box-shadow:0 16px 48px rgba(11,95,214,0.16);z-index:200;opacity:0;visibility:hidden;transform:translateY(-8px) scale(0.97);transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1);overflow:hidden;}
+  .profile-dropdown.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+  .dropdown-header{padding:20px 16px 14px;background:linear-gradient(135deg,var(--blue-900) 0%,var(--blue-700) 55%,var(--teal-700) 100%);display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .dd-avatar-wrap{width:68px;height:68px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.55);overflow:hidden;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.18);margin-bottom:4px;transition:transform 0.2s,box-shadow 0.2s;}
+  .dd-avatar-wrap:hover{transform:scale(1.05);box-shadow:0 4px 18px rgba(0,0,0,0.28);}
+  .dd-avatar-wrap img{width:100%;height:100%;object-fit:cover;display:none;}
+  .dd-avatar-initial{font-size:1.8rem;font-weight:800;color:white;line-height:1;}
+  .dd-cam-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;opacity:0;transition:opacity 0.2s ease;}
+  .dd-avatar-wrap:hover .dd-cam-overlay{opacity:1;}
+  .dd-cam-overlay i{font-size:1rem;color:white;}
+  .dd-cam-overlay span{font-size:0.5rem;font-weight:700;color:rgba(255,255,255,0.88);text-transform:uppercase;letter-spacing:0.5px;}
+  .dropdown-header .dh-username{font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);}
+  .dropdown-header .dh-name{font-size:0.94rem;font-weight:700;color:white;}
+  .dropdown-header .dh-email{font-size:0.7rem;color:rgba(255,255,255,0.58);}
+  .dd-pills-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px 2px;}
+  .dd-pill{font-size:0.68rem;font-weight:600;padding:3px 10px;border-radius:50px;}
+  .dropdown-body{padding:8px;}
+  .dd-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:0.86rem;font-weight:500;color:#475569;cursor:pointer;transition:all 0.18s ease;text-decoration:none;}
+  .dd-item:hover{background:var(--blue-50);color:var(--blue-700);}
+  .dd-item .dd-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+  .dd-divider{height:1px;background:var(--blue-100);margin:4px 8px;}
+  .dd-item.logout{color:#DC2626;}
+  .dd-item.logout:hover{background:#FEE2E2;color:#B91C1C;}
+  .dd-item.logout .dd-icon{background:#FEE2E2;color:#DC2626;}
+
+  /* NOTIFICATION PANEL */
+  .notif-panel{position:absolute;top:calc(100% + 12px);right:0;width:320px;background:white;border-radius:18px;border:1px solid var(--blue-100);box-shadow:0 16px 48px rgba(11,95,214,0.16);z-index:200;opacity:0;visibility:hidden;transform:translateY(-8px) scale(0.97);transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1);overflow:hidden;}
+  .notif-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+  .notif-header{padding:14px 16px;background:linear-gradient(135deg,var(--blue-900),var(--blue-700));display:flex;align-items:center;justify-content:space-between;}
+  .notif-header span{color:white;font-size:0.88rem;font-weight:700;}
+  .notif-clear{font-size:0.7rem;color:rgba(255,255,255,0.7);cursor:pointer;border:none;background:transparent;font-family:'DM Sans',sans-serif;}
+  .notif-clear:hover{color:white;}
+  .notif-list{overflow-y:auto;max-height:360px;}
+  .notif-item{display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid #F1F5F9;transition:background 0.15s;}
+  .notif-item:hover{background:#F8FAFC;}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .notif-item p{font-size:0.8rem;color:#334155;line-height:1.5;font-weight:500;}
+  .notif-item time{font-size:0.68rem;color:#94A3B8;display:block;margin-top:2px;}
+  .notif-empty{padding:32px;text-align:center;color:#94A3B8;font-size:0.84rem;}
+  .notif-badge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;background:#DC2626;border-radius:50%;border:1.5px solid white;font-size:0.55rem;font-weight:800;color:white;display:none;align-items:center;justify-content:center;padding:0 2px;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(10,18,38,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;visibility:hidden;transition:opacity 0.3s ease,visibility 0.3s ease;}
+  .modal-overlay.open{opacity:1;visibility:visible;}
+  .modal-box{background:white;border-radius:22px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(11,95,214,0.18);border:1px solid var(--blue-100);overflow:hidden;transform:translateY(20px) scale(0.97);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;}
+  .modal-overlay.open .modal-box{transform:translateY(0) scale(1);}
+  .modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue-700),var(--teal-600));}
+  .modal-header{padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-size:1.15rem;font-weight:700;color:#0F172A;}
+  .modal-subtitle{font-size:0.8rem;color:#64748B;margin-top:2px;}
+  .modal-close{width:32px;height:32px;border-radius:50%;border:1.5px solid #E2E8F0;background:#F8FAFC;color:#64748B;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.78rem;transition:all 0.2s ease;}
+  .modal-close:hover{background:#FEE2E2;border-color:#FCA5A5;color:#DC2626;}
+  .modal-form{padding:20px 24px 24px;display:flex;flex-direction:column;gap:12px;}
+  .mf-group label{display:block;font-size:0.7rem;font-weight:700;color:#64748B;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:5px;}
+  .mf-input-wrap{position:relative;}
+  .mf-input-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:0.78rem;pointer-events:none;}
+  .mf-input{width:100%;padding:10px 12px 10px 36px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:#1E293B;outline:none;transition:all 0.22s ease;}
+  .mf-input:focus{border-color:var(--blue-500);background:white;box-shadow:0 0 0 3px rgba(11,95,214,0.1);}
+  .mf-input:disabled{background:#F1F5F9;color:#94A3B8;cursor:not-allowed;}
+  .mf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .btn-save{width:100%;padding:12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:700;color:white;cursor:pointer;background:linear-gradient(135deg,var(--blue-900),var(--blue-700));box-shadow:0 4px 14px rgba(11,95,214,0.3);transition:all 0.22s ease;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+  .btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,95,214,0.42);}
+
+  .stat-card{border-radius:22px;padding:20px;border-left-width:4px;border-left-style:solid;}
+  #riskCircle{transition:stroke-dashoffset 1s ease-in-out,stroke 0.5s ease;}
+
+  /* ALERT BANNER */
+  .alert-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:400;opacity:0;visibility:hidden;padding:14px 24px;border-radius:14px;font-size:0.88rem;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.2);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);max-width:520px;width:90%;}
+  .alert-banner.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+  .alert-banner.high{background:linear-gradient(135deg,#B91C1C,#DC2626);color:white;}
+  .alert-banner.moderate{background:linear-gradient(135deg,#B45309,#D97706);color:white;}
+
+  .logout-fab{position:fixed;bottom:28px;right:28px;z-index:100;display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:50px;background:linear-gradient(135deg,#B91C1C,#DC2626);color:white;font-size:0.86rem;font-weight:700;font-family:'DM Sans',sans-serif;box-shadow:0 6px 22px rgba(220,38,38,0.4);border:none;cursor:pointer;text-decoration:none;transition:all 0.22s ease;}
+  .logout-fab:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(220,38,38,0.52);}
+
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);z-index:500;opacity:0;visibility:hidden;background:#0F172A;color:white;padding:10px 20px;border-radius:50px;font-size:0.83rem;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 8px 28px rgba(0,0,0,0.2);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;}
+  .toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+  .toast.success{background:linear-gradient(135deg,#047857,#059669);}
+  .toast.error{background:linear-gradient(135deg,#B91C1C,#DC2626);}
+  .toast.warning{background:linear-gradient(135deg,#B45309,#D97706);}
+
+  .insight-card{display:flex;gap:14px;padding:14px;border-radius:14px;transition:all 0.5s ease;}
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--blue-200);border-radius:3px;}
+</style>
+<script>tailwind.config={theme:{extend:{colors:{'brand-blue':'#0B5FD6','brand-dark':'#0F172A'}}}}</script>
 </head>
-<body class="min-h-screen overflow-x-hidden">
-<!-- BEGIN: Decorative Background Elements -->
-<div class="medical-bg-icon top-10 left-10">
-<svg fill="none" height="200" stroke="currentColor" stroke-width="0.5" viewbox="0 0 24 24" width="200"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-</div>
-<div class="medical-bg-icon bottom-20 right-10">
-<svg fill="none" height="300" stroke="currentColor" stroke-width="0.5" viewbox="0 0 24 24" width="300"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"></path></svg>
-</div>
-<!-- END: Decorative Background Elements -->
-<!-- BEGIN: MainHeader -->
-<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-purple-100 px-6 py-4 flex items-center justify-between shadow-sm">
-<div class="flex items-center gap-3" data-purpose="branding">
-<div class="bg-brand-purple p-2 rounded-xl text-white">
-<i class="w-6 h-6" data-lucide="activity"></i>
-</div>
-<div>
-<h1 class="text-xl font-bold text-brand-dark tracking-tight">Smart Diabetes</h1>
-<p class="text-xs font-medium text-brand-purple/70 uppercase tracking-widest">Premium Monitoring</p>
-</div>
-</div>
-<div class="flex items-center gap-6">
-<div class="text-right hidden md:block" data-purpose="real-time-clock">
-<p class="text-lg font-semibold text-brand-dark" id="current-time">10:45:22 AM</p>
-<p class="text-xs text-slate-500 font-medium" id="current-date">October 24, 2023</p>
-</div>
-<div class="flex items-center gap-3 border-l pl-6 border-purple-100">
-<button class="p-2 rounded-full hover:bg-purple-50 text-slate-400 relative">
-<i class="w-5 h-5" data-lucide="bell"></i>
-<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-</button>
-<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-purple to-purple-400 p-0.5">
-<div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ5ZnmjI_PYSXAdQpKrwbkbd9rtCg8v61XPXWS-SBgKAKCrysFF9l0fHDfpLYN5D3dE6n2ZYX87R1QBTxKLBJMJb1EAGBNy3vhY_W_LPAuf85ak4DWCIn5UbvPSeI1JA2--dZiVrFn4Mkat6DkkSoFFy4H3ZEbcd3UQJvxd7_zCF89zHYXma8Bg2M8XO0YzP4IfffyoMaL2Ed_JzTX-L4pnS1THrXY2_FFayTeE00vsz0u0B3ES6HU7EhvcAwceHQ5firyV35AR6s"/>
-</div>
-</div>
-</div>
-</div>
-</header>
-<!-- END: MainHeader -->
-<main class="max-w-[1600px] mx-auto p-6 space-y-6">
-<!-- BEGIN: Top Overview Grid -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-<!-- Patient Profile -->
-<section class="lg:col-span-5 glass-card rounded-3xl p-6 shadow-xl shadow-purple-900/5 flex flex-col justify-between" data-purpose="patient-info">
-<div class="space-y-4">
-<div class="flex items-start justify-between">
-<span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">ACTIVE</span>
-<button class="text-slate-400 hover:text-brand-purple transition-colors"><i data-lucide="more-horizontal"></i></button>
-</div>
-<div class="text-center py-4">
-<h2 class="text-2xl font-bold text-brand-dark">{{ user.name }}</h2>
-<p class="text-slate-500">ID: {{ user.user_id }}</p>
-</div>
-<div class="grid grid-cols-2 gap-4 pt-4">
-<div class="bg-medical-light p-3 rounded-2xl">
-<p class="font-bold text-brand-dark">{{ user.age }} Years</p>
-<p class="font-bold text-brand-dark">{{ user.gender }}</p>
-</div>
-<div class="bg-medical-light p-3 rounded-2xl">
-<p class="text-xs text-slate-400 mb-1">Gender</p>
-<p class="font-bold text-brand-dark">Male</p>
-</div>
-</div>
-</div>
-<a href="/report"
-   class="w-full mt-6 py-3 bg-brand-purple text-white rounded-2xl font-semibold hover:bg-brand-purple/90 transition-all flex items-center justify-center gap-2">
-  <i class="w-4 h-4" data-lucide="file-text"></i>
-  View Full History
-</a>
-</section>
-<!-- Live Data Panels -->
-<section class="lg:col-span-6 grid grid-cols-1 md:grid-cols-3 gap-4" data-purpose="live-data-stream">
-<!-- Glucose -->
-<div class="glass-card rounded-3xl p-5 shadow-lg border-l-4 border-brand-purple pulse-animation">
-<div class="flex items-center justify-between mb-4">
-<div class="p-2 bg-purple-100 text-brand-purple rounded-lg">
-<i class="w-5 h-5" data-lucide="droplet"></i>
-</div>
-<span class="text-[10px] font-bold text-slate-400">REAL-TIME</span>
-</div>
-<p class="text-sm font-medium text-slate-500">Glucose</p>
-<div class="flex items-baseline gap-1">
-<h3 id="glucoseValue" class="text-4xl font-extrabold text-brand-dark">0</h3>
-<span class="text-xs font-bold text-slate-400">mg/dL</span>
-</div>
-<div class="mt-4 flex items-center gap-1 text-green-500 text-xs font-bold">
-<i class="w-3 h-3" data-lucide="trending-down"></i>
-<span>-2% Since 1hr</span>
-</div>
-</div>
-<!-- Heart Rate -->
-<div class="glass-card rounded-3xl p-5 shadow-lg border-l-4 border-red-400">
-<div class="flex items-center justify-between mb-4">
-<div class="p-2 bg-red-100 text-red-500 rounded-lg">
-<i class="w-5 h-5" data-lucide="heart"></i>
-</div>
-<span class="text-[10px] font-bold text-slate-400">BPM</span>
-</div>
-<p class="text-sm font-medium text-slate-500">Heart Rate</p>
-<div class="flex items-baseline gap-1">
-<h3 id="heartRateValue" class="text-4xl font-extrabold text-brand-dark">0</h3><span class="text-xs font-bold text-slate-400">bpm</span>
-</div>
-<div class="mt-4 flex items-center gap-1 text-slate-400 text-xs font-bold">
-<i class="w-3 h-3" data-lucide="minus"></i>
-<span>Stable</span>
-</div>
-</div>
-<!-- Activity -->
-<div class="glass-card rounded-3xl p-5 shadow-lg border-l-4 border-blue-400">
-<div class="flex items-center justify-between mb-4">
-<div class="p-2 bg-blue-100 text-blue-500 rounded-lg">
-<i class="w-5 h-5" data-lucide="footprints"></i>
-</div>
-<span class="text-[10px] font-bold text-slate-400">DAILY</span>
-</div>
-<p class="text-sm font-medium text-slate-500">Activity</p>
-<div class="flex items-baseline gap-1">
-<h3 id="stepsValue" class="text-4xl font-extrabold text-brand-dark">0</h3><span class="text-xs font-bold text-slate-400">steps</span>
-</div>
-<div class="mt-4 flex items-center gap-1 text-blue-500 text-xs font-bold">
-<i class="w-3 h-3" data-lucide="trending-up"></i>
-<span>64% of goal</span>
-</div>
-</div>
-</section>
-</div>
-<!-- END: Top Overview Grid -->
-<!-- BEGIN: Chart Sections -->
+<body>
+<div class="bg-orb orb-blue"></div>
+<div class="bg-orb orb-teal"></div>
+<input type="file" id="globalAvatarInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)"/>
 
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+<!-- ALERT BANNER -->
+<div class="alert-banner" id="alertBanner">
+  <i class="fas fa-exclamation-triangle"></i>
+  <span id="alertBannerMsg">Risk Alert</span>
+  <button onclick="dismissAlert()" style="margin-left:auto;background:rgba(255,255,255,0.25);border:none;color:white;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:0.75rem;flex-shrink:0;"><i class="fas fa-times"></i></button>
+</div>
 
-  <!-- LEFT COLUMN -->
-  <div class="flex flex-col gap-6">
-
-    <!-- Glucose Chart -->
-    <section class="glass-card rounded-3xl p-6 shadow-lg h-[420px] flex flex-col">
-      <div class="mb-4">
-        <h3 class="text-lg font-bold text-brand-dark">Glucose vs Time</h3>
-        <p class="text-sm text-slate-400">Live Monitoring</p>
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div><div class="modal-title">Edit Profile</div><div class="modal-subtitle">Update your personal information</div></div>
+      <button class="modal-close" onclick="closeEditProfile()"><i class="fas fa-times"></i></button>
+    </div>
+    <form class="modal-form" onsubmit="saveProfile(event)">
+      <div class="mf-row">
+        <div class="mf-group"><label>Username</label><div class="mf-input-wrap"><i class="fas fa-at"></i><input class="mf-input" type="text" id="ep_username" placeholder="username" value="{{ user.username if user.username else '' }}" oninput="liveUpdateUsernameInitial(this.value)"></div></div>
+        <div class="mf-group"><label>Full Name</label><div class="mf-input-wrap"><i class="fas fa-user"></i><input class="mf-input" type="text" id="ep_name" placeholder="Full name" value="{{ user.name if user.name else '' }}"></div></div>
       </div>
-
-      <div class="flex-grow">
-        <canvas id="glucoseChart"></canvas>
+      <div class="mf-group"><label>Email Address</label><div class="mf-input-wrap"><i class="fas fa-envelope"></i><input class="mf-input" type="email" id="ep_email" placeholder="you@example.com" value="{{ user.email if user.email else '' }}" disabled></div></div>
+      <div class="mf-row">
+        <div class="mf-group"><label>Age</label><div class="mf-input-wrap"><i class="fas fa-calendar"></i><input class="mf-input" type="number" id="ep_age" placeholder="Age" value="{{ user.age if user.age else '' }}"></div></div>
+        <div class="mf-group"><label>Gender</label><div class="mf-input-wrap"><i class="fas fa-venus-mars"></i><input class="mf-input" type="text" id="ep_gender" placeholder="Gender" value="{{ user.gender if user.gender else '' }}"></div></div>
       </div>
-    </section>
-
-    <!-- Heart Rate -->
-    <section class="glass-card rounded-3xl p-6 shadow-lg h-[300px] flex flex-col">
-      <h3 class="text-md font-bold text-brand-dark mb-4">
-        Heart Rate
-      </h3>
-
-      <div class="flex-grow">
-        <canvas id="heartRateChart"></canvas>
-      </div>
-    </section>
-
+      <div class="mf-group"><label>Contact Number</label><div class="mf-input-wrap"><i class="fas fa-phone"></i><input class="mf-input" type="tel" id="ep_contact" placeholder="+91 00000 00000" value="{{ user.contact if user.contact else '' }}"></div></div>
+      <button type="submit" class="btn-save"><i class="fas fa-check-circle"></i> Save Changes</button>
+    </form>
   </div>
+</div>
 
+<div class="toast" id="toast"></div>
 
-  <!-- RIGHT COLUMN -->
-  <div class="flex flex-col gap-6">
+<!-- HEADER -->
+<header class="sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+  <a href="/" style="display:flex;align-items:center;gap:13px;text-decoration:none;">
+    <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#0C2D6B,#0B5FD6);border:1.5px solid rgba(11,95,214,0.3);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(11,95,214,0.3);flex-shrink:0;">
+      <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><rect x="13" y="4" width="6" height="24" rx="2" fill="url(#dlg)" opacity="0.9"/><rect x="4" y="13" width="24" height="6" rx="2" fill="url(#dlg)" opacity="0.9"/><polyline points="4,16 8,16 10,11 13,21 15,13 17,19 19,16 28,16" stroke="#14B8A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95"/><defs><linearGradient id="dlg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#60A5FA"/><stop offset="100%" stop-color="#0D9488"/></linearGradient></defs></svg>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1px;">
+      <span style="font-size:1.05rem;font-weight:700;color:#0F172A;letter-spacing:-0.3px;white-space:nowrap;">Smart Diabetes</span>
+      <span style="font-size:0.56rem;font-weight:600;color:#94A3B8;letter-spacing:2.5px;text-transform:uppercase;">Monitoring System</span>
+    </div>
+  </a>
+  <div class="flex items-center gap-6">
+    <div class="text-right hidden md:block">
+      <p style="font-family:'DM Mono',monospace;font-size:1rem;font-weight:600;color:#0F172A;" id="current-time">--:--:-- --</p>
+      <p style="font-size:0.72rem;color:#64748B;font-weight:500;" id="current-date">Loading...</p>
+    </div>
+    <!-- NOTIFICATION BELL -->
+    <div style="position:relative;" id="notifWrap">
+      <button id="notifBtn" onclick="toggleNotifPanel(event)" style="position:relative;padding:8px;border-radius:50%;border:1.5px solid #E2E8F0;background:white;cursor:pointer;color:#64748B;transition:all 0.2s;" onmouseover="this.style.borderColor='#BFDBFE';this.style.color='#0B5FD6'" onmouseout="this.style.borderColor='#E2E8F0';this.style.color='#64748B'">
+        <i class="fas fa-bell" style="font-size:0.9rem;"></i>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-header">
+          <span><i class="fas fa-bell" style="margin-right:6px;"></i>Notifications</span>
+          <button class="notif-clear" onclick="clearNotifications()">Clear all</button>
+        </div>
+        <div class="notif-list" id="notifList">
+          <div class="notif-empty"><i class="fas fa-check-circle" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#10B981;"></i>No alerts right now</div>
+        </div>
+      </div>
+    </div>
+    <!-- PROFILE AVATAR -->
+    <div style="position:relative;" id="profileDropdownWrap">
+      <div class="avatar-ring" onclick="toggleProfileDropdown(event)" title="Profile menu">
+        <div class="avatar-inner">
+          <img id="headerAvatarImg" src="" alt=""/>
+          <span class="avatar-placeholder" id="headerAvatarPh">{{ user.username[0]|upper if user.username else (user.name[0]|upper if user.name else 'U') }}</span>
+        </div>
+      </div>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+          <div class="dd-avatar-wrap" onclick="document.getElementById('globalAvatarInput').click()" title="Click to change photo">
+            <img id="ddAvatarImg" src="" alt=""/>
+            <span class="dd-avatar-initial" id="ddAvatarInitial">{{ user.username[0]|upper if user.username else (user.name[0]|upper if user.name else 'U') }}</span>
+            <div class="dd-cam-overlay"><i class="fas fa-camera"></i><span>Change Photo</span></div>
+          </div>
+          <div class="dh-username" id="dd_username_display">
+  @{{ user.username or 'username' }}
+</div>
+          <div class="dh-name" id="dd_name">{{ user.name if user.name else 'User' }}</div>
+          <div class="dh-email" id="dd_email">{{ user.email if user.email else '' }}</div>
+        </div>
+        <div class="dd-pills-row">
+          <span class="dd-pill" style="background:#EFF6FF;color:#0B5FD6;border:1px solid #BFDBFE;" id="dd_age_pill">{{ user.age if user.age else '--' }} yrs</span>
+          
+        </div>
+        <div class="dropdown-body">
+          <div class="dd-item" onclick="openEditProfile()"><div class="dd-icon" style="background:#EFF6FF;color:#0B5FD6;"><i class="fas fa-user-edit"></i></div><span>Edit Profile</span></div>
+          <div class="dd-divider"></div>
+          <a class="dd-item logout" href="/logout"><div class="dd-icon"><i class="fas fa-sign-out-alt"></i></div><span>Logout</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-    <!-- Risk Assessment -->
-    <section class="glass-card rounded-3xl p-6 shadow-xl h-[420px] flex flex-col items-center justify-center text-center">
-      
-      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-        Risk Assessment
-      </h3>
+<!-- MAIN -->
+<main class="max-w-[1600px] mx-auto p-6 space-y-6">
 
-      <div class="relative w-44 h-44 mb-6">
-        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="16" fill="none"
-            stroke="#E5E7EB" stroke-width="3"></circle>
+  <!-- TOP ROW: Patient card + 4 stat cards -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-          <circle id="riskCircle"
-            cx="18" cy="18" r="16"
-            fill="none"
-            stroke="#10B981"
-            stroke-dasharray="100 100"
-            stroke-dashoffset="100"
-            stroke-linecap="round"
-            stroke-width="3">
-          </circle>
-        </svg>
+    <!-- PATIENT CARD -->
+    <section class="lg:col-span-3 glass-card rounded-3xl p-6 flex flex-col justify-between">
+      <div class="space-y-5">
+        <div class="flex items-center"><span style="padding:3px 12px;background:#D1FAE5;color:#047857;font-size:0.72rem;font-weight:700;border-radius:50px;letter-spacing:0.5px;">ACTIVE</span></div>
+        <div class="text-center py-3">
+          <h2 style="font-size:1.35rem;font-weight:800;color:#0F172A;letter-spacing:-0.3px;" id="pc_name">{{ user.name if user.name else 'User' }}</h2>
+         <p style="font-size:0.78rem;color:#94A3B8;font-weight:500;margin-top:4px;">
+  <i class="fas fa-user" style="font-size:0.68rem;margin-right:4px;"></i>
+  <span id="pc_username_text">
+    @{{ user.username if user.username else 'username' }}
+  </span>
+</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:14px;padding:16px;text-align:center;">
+            <p style="font-size:0.62rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Age</p>
+            <p style="font-size:1.5rem;font-weight:800;color:#0B5FD6;font-family:'DM Mono',monospace;" id="pc_age">{{ user.age if user.age else '—' }}</p>
+            <p style="font-size:0.68rem;color:#94A3B8;margin-top:4px;">Years</p>
+          </div>
+          <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:14px;padding:16px;text-align:center;">
+            <p style="font-size:0.62rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Gender</p>
+           <p id="pc_gender">
+  {{ user.gender if user.gender else '--' }}
+</p>
+            <p style="font-size:0.68rem;color:#94A3B8;margin-top:4px;">&nbsp;</p>
+          </div>
+        </div>
+      </div>
+      <a href="/report" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:24px;padding:14px;border-radius:14px;font-weight:700;font-size:0.92rem;color:white;background:linear-gradient(135deg,#0C2D6B,#0B5FD6);box-shadow:0 4px 16px rgba(11,95,214,0.3);text-decoration:none;transition:all 0.22s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 22px rgba(11,95,214,0.42)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(11,95,214,0.3)'">
+        <i class="fas fa-file-medical-alt"></i> View Full History
+      </a>
+    </section>
 
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <span id="riskLevel"
-            class="text-2xl font-bold text-brand-dark">
-            LOW
-          </span>
+    <!-- 4 STAT CARDS -->
+    <section class="lg:col-span-9 grid grid-cols-2 md:grid-cols-4 gap-4 h-full">
 
-          <span class="text-xl font-extrabold mt-1">
-            <span id="riskPercent">0%</span>
-          </span>
-
-          <span class="text-xs text-slate-500 font-bold">
-            LEVEL
-          </span>
+      <!-- Glucose -->
+      <div class="stat-card glass-card pulse-animation" style="border-left-color:#0B5FD6;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="padding:10px;background:#EFF6FF;color:#0B5FD6;border-radius:12px;"><i class="fas fa-tint" style="font-size:1rem;"></i></div>
+            <span style="font-size:0.58rem;font-weight:700;color:#94A3B8;letter-spacing:1px;">LIVE</span>
+          </div>
+          <p style="font-size:0.82rem;font-weight:500;color:#64748B;">Glucose</p>
+          <div style="display:flex;align-items:baseline;gap:3px;margin-top:4px;">
+            <h3 id="glucoseValue" style="font-size:2.2rem;font-weight:800;color:#0F172A;font-family:'DM Mono',monospace;">--</h3>
+            <span style="font-size:0.7rem;font-weight:700;color:#94A3B8;">mg/dL</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.66rem;color:#94A3B8;font-weight:600;margin-bottom:8px;">Range: 70–140 mg/dL</div>
+          <div id="glucoseTrendWrap" style="display:flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:700;color:#94A3B8;padding:8px 10px;background:#F8FAFC;border-radius:8px;">
+            <i class="fas fa-minus" id="glucoseTrendIcon" style="font-size:0.55rem;"></i><span id="glucoseTrend">Monitoring...</span>
+          </div>
         </div>
       </div>
 
-      <div id="riskMessage"
-        class="px-4 py-2 rounded-xl font-bold text-sm">
-        Stable Condition
+      <!-- Heart Rate -->
+      <div class="stat-card glass-card" style="border-left-color:#EF4444;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="padding:10px;background:#FEE2E2;color:#EF4444;border-radius:12px;"><i class="fas fa-heartbeat" style="font-size:1rem;"></i></div>
+            <span style="font-size:0.58rem;font-weight:700;color:#94A3B8;letter-spacing:1px;">BPM</span>
+          </div>
+          <p style="font-size:0.82rem;font-weight:500;color:#64748B;">Heart Rate</p>
+          <div style="display:flex;align-items:baseline;gap:3px;margin-top:4px;">
+            <h3 id="heartRateValue" style="font-size:2.2rem;font-weight:800;color:#0F172A;font-family:'DM Mono',monospace;">--</h3>
+            <span style="font-size:0.7rem;font-weight:700;color:#94A3B8;">bpm</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.66rem;color:#94A3B8;font-weight:600;margin-bottom:8px;">Range: 60–100 bpm</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:700;color:#94A3B8;padding:8px 10px;background:#F8FAFC;border-radius:8px;">
+            <i class="fas fa-minus" style="font-size:0.55rem;"></i><span id="heartTrend">Stable</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SpO2 -->
+      <div class="stat-card glass-card" style="border-left-color:#8B5CF6;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="padding:10px;background:#F5F3FF;color:#8B5CF6;border-radius:12px;"><i class="fas fa-lungs" style="font-size:1rem;"></i></div>
+            <span style="font-size:0.58rem;font-weight:700;color:#94A3B8;letter-spacing:1px;">SpO2</span>
+          </div>
+          <p style="font-size:0.82rem;font-weight:500;color:#64748B;">Blood Oxygen</p>
+          <div style="display:flex;align-items:baseline;gap:3px;margin-top:4px;">
+            <h3 id="spo2Value" style="font-size:2.2rem;font-weight:800;color:#0F172A;font-family:'DM Mono',monospace;">--</h3>
+            <span style="font-size:0.7rem;font-weight:700;color:#94A3B8;">%</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.66rem;color:#94A3B8;font-weight:600;margin-bottom:8px;">Normal: ≥ 95%</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:700;padding:8px 10px;background:#F5F3FF;border-radius:8px;">
+            <i class="fas fa-circle" style="font-size:0.45rem;color:#8B5CF6;"></i><span id="spo2Status" style="color:#8B5CF6;">Reading...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity -->
+      <div class="stat-card glass-card" style="border-left-color:#14B8A6;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="padding:10px;background:#F0FDFA;color:#0D9488;border-radius:12px;"><i class="fas fa-walking" style="font-size:1rem;"></i></div>
+            <span style="font-size:0.58rem;font-weight:700;color:#94A3B8;letter-spacing:1px;">DAILY</span>
+          </div>
+          <p style="font-size:0.82rem;font-weight:500;color:#64748B;">Activity</p>
+          <div style="display:flex;align-items:baseline;gap:3px;margin-top:4px;">
+            <h3 id="stepsValue" style="font-size:2.2rem;font-weight:800;color:#0F172A;font-family:'DM Mono',monospace;">--</h3>
+            <span style="font-size:0.7rem;font-weight:700;color:#94A3B8;">steps</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.66rem;color:#94A3B8;font-weight:600;margin-bottom:8px;">Goal: 8,000 steps</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:700;color:#0D9488;padding:8px 10px;background:#F0FDFA;border-radius:8px;">
+            <i class="fas fa-arrow-up" style="font-size:0.55rem;"></i><span id="stepsTrend">0% of goal</span>
+          </div>
+        </div>
       </div>
 
     </section>
-
-    <!-- Steps Chart -->
-    <section class="glass-card rounded-3xl p-6 shadow-lg h-[300px] flex flex-col">
-      <h3 class="text-md font-bold text-brand-dark mb-4">
-        Daily Steps
-      </h3>
-
-      <div class="flex-grow">
-        <canvas id="stepsChart"></canvas>
-      </div>
-    </section>
-
   </div>
 
-</div>
+  <!-- CHARTS ROW -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="flex flex-col gap-6">
 
-<!-- END: Chart Sections -->
-<!-- BEGIN: Insights & Summary -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-<!-- AI Insights Card -->
-<section class="lg:col-span-2 glass-card rounded-3xl p-6 shadow-lg relative overflow-hidden" data-purpose="ai-insights">
-<div class="absolute -right-6 -top-6 w-32 h-32 bg-brand-purple/5 rounded-full blur-2xl"></div>
-<div class="flex items-center gap-3 mb-6">
-<div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg">
-<i class="w-5 h-5" data-lucide="sparkles"></i>
-</div>
-<h3 class="text-lg font-bold text-brand-dark">Smart AI Insights</h3>
-</div>
-<div class="space-y-4">
-<div class="flex gap-4 p-4 rounded-2xl bg-medical-light border-l-4 border-brand-purple">
-<div class="shrink-0 mt-1"><i class="w-5 h-5 text-brand-purple" data-lucide="check-circle-2"></i></div>
-<p class="text-sm text-brand-dark/80 leading-relaxed">
-<strong>Glucose Stabilization:</strong> Your glucose levels have remained within the target range for 85% of the day. Great job on maintaining your meal timing.
-            </p>
-</div>
-<div class="flex gap-4 p-4 rounded-2xl bg-amber-50 border-l-4 border-amber-400">
-<div class="shrink-0 mt-1"><i class="w-5 h-5 text-amber-500" data-lucide="alert-triangle"></i></div>
-<p class="text-sm text-brand-dark/80 leading-relaxed">
-<strong>Upcoming Peak:</strong> Based on your activity history, we predict a slight rise in glucose around 6:00 PM. Consider a light walk after dinner.
-            </p>
-</div>
-</div>
-</section>
-<!-- Health Summary Checklist -->
-<section class="glass-card rounded-3xl p-6 shadow-lg" data-purpose="health-summary">
-<h3 class="text-lg font-bold text-brand-dark mb-6">Daily Checklist</h3>
-<div class="space-y-4">
-<label class="flex items-center gap-3 cursor-pointer group">
-<input checked="" class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
-<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Morning Fasting Check</span>
-</label>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input checked="" class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
-<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Pre-Lunch Reading</span>
-</label>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
-<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Afternoon Insulin Dose</span>
-</label>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="w-5 h-5 rounded-lg border-purple-200 text-brand-purple focus:ring-brand-purple" type="checkbox"/>
-<span class="text-sm font-medium text-slate-600 group-hover:text-brand-dark transition-colors">Evening Activity Goal</span>
-</label>
-</div>
-<div class="mt-8 p-4 bg-medical-light rounded-2xl">
-<div class="flex justify-between text-xs font-bold text-slate-400 mb-2">
-<span>DAILY PROGRESS</span>
-<span>50%</span>
-</div>
-<div class="w-full bg-white rounded-full h-2 overflow-hidden border">
-<div class="bg-brand-purple h-full w-1/2 rounded-full"></div>
-</div>
-</div>
-</section>
-</div>
-<!-- END: Insights & Summary -->
+      <!-- Glucose Chart -->
+      <section class="glass-card rounded-3xl p-6 shadow-lg" style="height:380px;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <h3 style="font-size:1rem;font-weight:700;color:#0F172A;">Glucose vs Time</h3>
+            <p style="font-size:0.75rem;color:#94A3B8;margin-top:2px;">Live · Target range 70–140 mg/dL</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:600;color:#DC2626;"><span style="width:8px;height:2px;background:#DC2626;display:inline-block;border-radius:2px;"></span>High</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:600;color:#0B5FD6;"><span style="width:8px;height:2px;background:#0B5FD6;display:inline-block;border-radius:2px;"></span>Glucose</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:600;color:#F59E0B;"><span style="width:8px;height:2px;background:#F59E0B;display:inline-block;border-radius:2px;"></span>Low</span>
+          </div>
+        </div>
+        <div style="flex:1;position:relative;min-height:0;"><canvas id="glucoseChart"></canvas></div>
+      </section>
+
+      <!-- Heart Rate Chart -->
+      <section class="glass-card rounded-3xl p-6 shadow-lg" style="height:280px;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div><h3 style="font-size:1rem;font-weight:700;color:#0F172A;">Heart Rate</h3><p style="font-size:0.75rem;color:#94A3B8;">Normal: 60–100 bpm</p></div>
+          <span id="bpmLive" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:700;color:#EF4444;background:#FEE2E2;padding:4px 10px;border-radius:8px;">-- bpm</span>
+        </div>
+        <div style="flex:1;position:relative;min-height:0;"><canvas id="heartRateChart"></canvas></div>
+      </section>
+
+    </div>
+    <div class="flex flex-col gap-6">
+
+      <!-- Risk + SpO2 Chart -->
+      <section class="glass-card rounded-3xl p-6 shadow-lg" style="height:380px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <h3 style="font-size:0.72rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;">Risk Assessment</h3>
+        <div style="position:relative;width:160px;height:160px;margin-bottom:16px;flex-shrink:0;">
+          <svg style="width:100%;height:100%;transform:rotate(-90deg);" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="16" fill="none" stroke="#E2E8F0" stroke-width="3"></circle>
+            <circle id="riskCircle" cx="18" cy="18" r="16" fill="none" stroke="#10B981" stroke-dasharray="100 100" stroke-dashoffset="100" stroke-linecap="round" stroke-width="3"></circle>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <span id="riskLevel" style="font-size:1.2rem;font-weight:800;color:#0F172A;">LOW</span>
+            <span style="font-size:1rem;font-weight:800;margin-top:2px;"><span id="riskPercent">0%</span></span>
+            <span style="font-size:0.65rem;color:#64748B;font-weight:600;">LEVEL</span>
+          </div>
+        </div>
+        <div id="riskMessage" style="padding:7px 16px;border-radius:10px;font-weight:700;font-size:0.84rem;background:#D1FAE5;color:#047857;margin-bottom:14px;">Stable Condition</div>
+        <!-- SpO2 trend mini chart -->
+        <div style="width:100%;flex:1;display:flex;flex-direction:column;min-height:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <p style="font-size:0.7rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;">SpO2 Trend</p>
+            <span id="spo2Live" style="font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;color:#8B5CF6;background:#F5F3FF;padding:2px 8px;border-radius:6px;">-- %</span>
+          </div>
+          <div style="flex:1;position:relative;min-height:0;"><canvas id="spo2Chart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- Steps Chart -->
+      <section class="glass-card rounded-3xl p-6 shadow-lg" style="height:280px;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div><h3 style="font-size:1rem;font-weight:700;color:#0F172A;">Daily Steps</h3><p style="font-size:0.75rem;color:#94A3B8;">Goal: 8,000 steps/day</p></div>
+          <span id="stepsLive" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:700;color:#0D9488;background:#F0FDFA;padding:4px 10px;border-radius:8px;">-- steps</span>
+        </div>
+        <div style="flex:1;position:relative;min-height:0;"><canvas id="stepsChart"></canvas></div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- INSIGHTS & CHECKLIST -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="lg:col-span-2 glass-card rounded-3xl p-6 shadow-lg relative overflow-hidden">
+      <div style="position:absolute;right:-24px;top:-24px;width:128px;height:128px;background:rgba(11,95,214,0.04);border-radius:50%;filter:blur(20px);"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="padding:8px;background:linear-gradient(135deg,#0845A3,#0B5FD6);border-radius:10px;color:white;"><i class="fas fa-brain" style="font-size:0.9rem;"></i></div>
+        <h3 style="font-size:1rem;font-weight:700;color:#0F172A;">Smart AI Insights</h3>
+        <span id="insightRiskBadge" style="margin-left:auto;padding:3px 10px;border-radius:50px;font-size:0.68rem;font-weight:700;background:#D1FAE5;color:#047857;">LOW RISK</span>
+      </div>
+      <div id="insightsContainer" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </section>
+
+    <section class="glass-card rounded-3xl p-6 shadow-lg">
+      <h3 style="font-size:1rem;font-weight:700;color:#0F172A;margin-bottom:20px;">Daily Checklist</h3>
+      <div id="checklistContainer" style="display:flex;flex-direction:column;gap:14px;"></div>
+      <div style="margin-top:24px;padding:14px;background:#F8FAFC;border-radius:14px;border:1px solid #E2E8F0;">
+        <div style="display:flex;justify-content:space-between;font-size:0.7rem;font-weight:700;color:#94A3B8;margin-bottom:8px;"><span>DAILY PROGRESS</span><span id="progressLabel">0%</span></div>
+        <div style="width:100%;background:white;border-radius:50px;height:8px;overflow:hidden;border:1px solid #E2E8F0;">
+          <div id="progressBar" style="background:linear-gradient(90deg,#0B5FD6,#14B8A6);height:100%;width:0%;border-radius:50px;transition:width 0.5s ease;"></div>
+        </div>
+      </div>
+    </section>
+  </div>
 </main>
-<footer class="p-8 text-center text-slate-400 text-xs font-medium uppercase tracking-widest border-t border-purple-50 mt-12">
-    © 2026 Smart Diabetes Monitoring System • Confidential Patient Data
-  </footer>
-<script data-purpose="initialize-icons">
-    // Initialize Lucide icons
-    lucide.createIcons();
-  </script>
-<script data-purpose="live-clock">
-    function updateClock() {
-      const timeElement = document.getElementById('current-time');
-      const dateElement = document.getElementById('current-date');
-      const now = new Date();
-      
-      timeElement.textContent = now.toLocaleTimeString('en-US', { 
-        hour12: true, 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
-      });
-      
-      dateElement.textContent = now.toLocaleDateString('en-US', { 
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    }
-    
-    setInterval(updateClock, 1000);
-    updateClock();
-  </script>
- <script>
-const labels = [];
-const glucoseData = [];
-const heartRateData = [];
-const stepsData = [];
-let lastDataSignature = null;
-// GLUCOSE CHART
-const glucoseChart = new Chart(document.getElementById("glucoseChart"), {
-  type: "line",
-  data: {
-    labels: labels,
-    datasets: [{
-      label: "Glucose (mg/dL)",
-      data: glucoseData,
-      borderColor: "#7C3AED",
-      backgroundColor: "rgba(124,58,237,0.15)",
-      fill: true,
-      tension: 0.4
-    }]
-  },
-  options: {
-    responsive: true,
-    animation: false,
-    scales: { y: { min: 60, max: 250 } }
-  }
+
+<footer style="padding:28px;text-align:center;color:#94A3B8;font-size:0.72rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;border-top:1px solid #E2E8F0;margin-top:48px;position:relative;z-index:1;">
+  © 2026 Smart Diabetes Monitoring System · Confidential Patient Data
+</footer>
+<a href="/logout" class="logout-fab"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+
+<script>
+/* ── Clock ── */
+function updateClock(){const n=new Date();document.getElementById('current-time').textContent=n.toLocaleTimeString('en-US',{hour12:true,hour:'2-digit',minute:'2-digit',second:'2-digit'});document.getElementById('current-date').textContent=n.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
+setInterval(updateClock,1000);updateClock();
+
+/* ── Close panels on outside click ── */
+document.addEventListener('click',e=>{
+  if(!document.getElementById('profileDropdownWrap').contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+  if(!document.getElementById('notifWrap').contains(e.target)) document.getElementById('notifPanel').classList.remove('open');
 });
 
-// HEART RATE CHART
-const heartRateChart = new Chart(document.getElementById("heartRateChart"), {
-  type: "line",
-  data: {
-    labels: labels,
-    datasets: [{
-      label: "Heart Rate (BPM)",
-      data: heartRateData,
-      borderColor: "#EF4444",
-      tension: 0.4
-    }]
-  },
-  options: {
-    responsive: true,
-    animation: false,
-    scales: { y: { min: 40, max: 150 } }
-  }
-});
+/* ── Profile dropdown ── */
+function toggleProfileDropdown(e){e.stopPropagation();document.getElementById('profileDropdown').classList.toggle('open');document.getElementById('notifPanel').classList.remove('open');}
 
-// STEPS CHART
-const stepsChart = new Chart(document.getElementById("stepsChart"), {
-  type: "bar",
-  data: {
-    labels: labels,
-    datasets: [{
-      label: "Steps",
-      data: stepsData,
-      backgroundColor: "#3B82F6"
-    }]
-  },
-  options: {
-    responsive: true,
-    animation: false,
-    scales: { y: { beginAtZero: true } }
-  }
-});
-
-async function fetchLiveData() {
-  try {
-    const res = await fetch("/live");
-    if (!res.ok) return;
-
-    const data = await res.json();
-
-    // 🔐 Create a unique signature of sensor data
-    const currentSignature = `${data.glucose}-${data.heart_rate}-${data.steps}`;
-
-    // 🚫 If same data as last time → DO NOTHING
-    if (currentSignature === lastDataSignature) {
-      return;
-    }
-
-    // ✅ New data arrived → update signature
-    lastDataSignature = currentSignature;
-
-    const time = new Date().toLocaleTimeString();
-
-    // ---- LIVE VALUES ----
-    document.getElementById("glucoseValue").innerText =
-      data.glucose.toFixed(1);
-
-    document.getElementById("heartRateValue").innerText =
-      data.heart_rate.toFixed(0);
-
-    document.getElementById("stepsValue").innerText =
-      data.steps;
-
-    // ---- RISK ----
- const riskValue = data.probability * 100;
-const risk = riskValue.toFixed(1);
-
-document.getElementById("riskPercent").innerText = risk + "%";
-
-let level = "LOW";
-let color = "#10B981"; // green
-let message = "Stable Condition";
-
-if (riskValue > 70) {
-  level = "HIGH";
-  color = "#EF4444";
-  message = "High Risk Detected";
+/* ── Notifications ── */
+let notifications=[];
+function toggleNotifPanel(e){
+  e.stopPropagation();
+  const p=document.getElementById('notifPanel');
+  p.classList.toggle('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+  if(p.classList.contains('open')){document.getElementById('notifBadge').style.display='none';}
 }
-else if (riskValue > 40) {
-  level = "MODERATE";
-  color = "#F59E0B";
-  message = "Moderate Risk";
+function addNotification(msg,type='info'){
+  const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  notifications.unshift({msg,type,time:now});
+  if(notifications.length>30)notifications.pop();
+  renderNotifications();
+  const b=document.getElementById('notifBadge');
+  b.style.display='flex';
+  b.textContent=notifications.length>9?'9+':notifications.length;
 }
+function renderNotifications(){
+  const list=document.getElementById('notifList');
+  if(!notifications.length){list.innerHTML='<div class="notif-empty"><i class="fas fa-check-circle" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#10B981;"></i>No alerts right now</div>';return;}
+  const c={high:'#DC2626',moderate:'#D97706',low:'#059669',info:'#0B5FD6'};
+  list.innerHTML=notifications.map(n=>`<div class="notif-item"><div class="notif-dot" style="background:${c[n.type]||c.info};"></div><div><p>${n.msg}</p><time>${n.time}</time></div></div>`).join('');
+}
+function clearNotifications(){notifications=[];renderNotifications();document.getElementById('notifBadge').style.display='none';}
 
-document.getElementById("riskLevel").innerText = level;
-document.getElementById("riskMessage").innerText = message;
-document.getElementById("riskMessage").className =
-  "px-4 py-2 rounded-xl font-bold text-sm text-white";
+/* ── Alert Banner ── */
+let alertTO=null;
+function showAlert(msg,type){
+  const b=document.getElementById('alertBanner');
+  document.getElementById('alertBannerMsg').textContent=msg;
+  b.className=`alert-banner ${type} show`;
+  clearTimeout(alertTO);
+  alertTO=setTimeout(()=>dismissAlert(),8000);
+}
+function dismissAlert(){document.getElementById('alertBanner').classList.remove('show');}
 
-document.getElementById("riskMessage").style.backgroundColor = color;
+/* ── Modal ── */
+function openEditProfile(){document.getElementById('profileDropdown').classList.remove('open');document.getElementById('editProfileModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeEditProfile(){document.getElementById('editProfileModal').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('editProfileModal').addEventListener('click',e=>{if(e.target===document.getElementById('editProfileModal'))closeEditProfile();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEditProfile();});
 
-const circle = document.getElementById("riskCircle");
-circle.style.stroke = color;
-circle.style.strokeDashoffset = 100 - riskValue;
+/* ── Avatar Upload ── */
+let uploadedAvatarDataURL=null;
+function handleAvatarUpload(event){
+  const f=event.target.files[0];if(!f)return;
+  if(!f.type.startsWith('image/')){showToast('Please select an image file.','error');return;}
+  const r=new FileReader();
+  r.onload=e=>{
+    uploadedAvatarDataURL=e.target.result;
+    const h=document.getElementById('headerAvatarImg');h.src=uploadedAvatarDataURL;h.style.display='block';
+    document.getElementById('headerAvatarPh').style.display='none';
+    const d=document.getElementById('ddAvatarImg');d.src=uploadedAvatarDataURL;d.style.display='block';
+    document.getElementById('ddAvatarInitial').style.display='none';
+    showToast('<i class="fas fa-check-circle"></i> Photo updated!','success');
+  };
+  r.readAsDataURL(f);event.target.value='';
+}
+function liveUpdateUsernameInitial(v){if(uploadedAvatarDataURL||!v.trim())return;const i=v.trim()[0].toUpperCase();document.getElementById('headerAvatarPh').textContent=i;document.getElementById('ddAvatarInitial').textContent=i;}
 
-    // ---- UPDATE CHARTS (ONLY NOW) ----
-    labels.push(time);
-    glucoseData.push(data.glucose);
-    heartRateData.push(data.heart_rate);
-    stepsData.push(data.steps);
+/* ── Save Profile ── */
+function saveProfile(e){
+  e.preventDefault();
+  const name=document.getElementById('ep_name').value.trim(),username=document.getElementById('ep_username').value.trim();
+  const age=document.getElementById('ep_age').value.trim(),gender=document.getElementById('ep_gender').value.trim(),contact=document.getElementById('ep_contact').value.trim();
+  const payload={name,username,age,gender,contact};
+  if(uploadedAvatarDataURL)payload.avatar=uploadedAvatarDataURL;
+  fetch('/update-profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(r=>r.json()).then(d=>{if(d.success||d.message){applyProfile(name,username,age,gender);closeEditProfile();showToast('<i class="fas fa-check-circle"></i> Profile updated!','success');}else showToast(d.error||'Could not save.','error');})
+  .catch(()=>{applyProfile(name,username,age,gender);closeEditProfile();showToast('<i class="fas fa-check-circle"></i> Profile updated!','success');});
+}
+function applyProfile(name, username, age, gender) {
 
-    if (labels.length > 20) {
-      labels.shift();
-      glucoseData.shift();
-      heartRateData.shift();
-      stepsData.shift();
+  if(name){
+    document.getElementById('pc_name').textContent = name;
+    document.getElementById('dd_name').textContent = name;
+  }
+
+  if(username){
+    document.getElementById('pc_username_text').textContent = '@' + username;
+    document.getElementById('dd_username_display').textContent = '@' + username;
+  }
+
+  if(age){
+    document.getElementById('pc_age').textContent = age;
+    document.getElementById('dd_age_pill').textContent = age + ' yrs';
+  }
+
+  if(gender){
+    document.getElementById('pc_gender').textContent = gender;
+    document.getElementById('dd_gender_pill').textContent = gender;
+  }
+
+  if(!uploadedAvatarDataURL){
+    const source = username || name;
+    if(source){
+      const initial = source.charAt(0).toUpperCase();
+      document.getElementById('headerAvatarPh').textContent = initial;
+      document.getElementById('ddAvatarInitial').textContent = initial;
     }
-
-    glucoseChart.update();
-    heartRateChart.update();
-    stepsChart.update();
-
-  } catch (err) {
-    console.error("Live fetch error:", err);
   }
 }
 
-setInterval(fetchLiveData, 3000);
+/* ── Toast ── */
+let _tt;
+function showToast(msg,type='info',dur=3000){const t=document.getElementById('toast');t.innerHTML=msg;t.className=`toast ${type} show`;clearTimeout(_tt);_tt=setTimeout(()=>{t.className='toast';},dur);}
+
+/* ══════════════════
+   INSIGHTS + CHECKLIST
+══════════════════ */
+const allInsights={
+  low:[
+    {icon:'fa-check-circle',color:'#0B5FD6',bg:'#EFF6FF',border:'#0B5FD6',title:'Excellent Glucose Control',text:'Your glucose has stayed within the target range (70–140 mg/dL) for over 90% of today. Your meal timing and portion control are paying off.'},
+    {icon:'fa-heart',color:'#059669',bg:'#ECFDF5',border:'#059669',title:'Heart Rate Optimal',text:'Your resting heart rate is within the healthy 60–100 bpm zone, indicating good cardiovascular fitness and effective diabetes management.'},
+    {icon:'fa-walking',color:'#0D9488',bg:'#F0FDFA',border:'#0D9488',title:'Activity Goal On Track',text:'You are progressing well toward your daily 8,000-step goal. Regular walking after meals significantly reduces post-meal glucose spikes.'},
+    {icon:'fa-moon',color:'#7C3AED',bg:'#F5F3FF',border:'#7C3AED',title:'Sleep & Glucose Link',text:'Consistent sleep patterns stabilize cortisol, directly lowering fasting glucose. Aim for 7–8 hours tonight to maintain your low-risk status.'},
+    {icon:'fa-lungs',color:'#0B5FD6',bg:'#EFF6FF',border:'#0B5FD6',title:'SpO2 Levels Healthy',text:'Your blood oxygen saturation is in the optimal 95–100% range. This supports efficient glucose metabolism and overall organ health.'},
+  ],
+  moderate:[
+    {icon:'fa-exclamation-triangle',color:'#D97706',bg:'#FFFBEB',border:'#D97706',title:'Glucose Trending Upward',text:'Your glucose has risen above 140 mg/dL in the last hour. Consider a 15-minute brisk walk to naturally bring levels down before your next meal.'},
+    {icon:'fa-utensils',color:'#D97706',bg:'#FFFBEB',border:'#D97706',title:'Watch Your Carb Intake',text:'Moderate risk often correlates with recent high-glycemic meals. Opt for complex carbs (brown rice, quinoa) and pair them with protein at your next meal.'},
+    {icon:'fa-clock',color:'#B45309',bg:'#FEF3C7',border:'#B45309',title:'Meal Timing Alert',text:'Based on your pattern, glucose tends to spike 2 hours after eating. Set a reminder for a post-meal walk to reduce the peak effectively.'},
+    {icon:'fa-pills',color:'#D97706',bg:'#FFFBEB',border:'#D97706',title:'Medication Reminder',text:'Moderate glucose elevations may indicate a missed or delayed dose. Check your medication schedule and consult your doctor if this persists.'},
+    {icon:'fa-brain',color:'#B45309',bg:'#FEF3C7',border:'#B45309',title:'Stress Impact Detected',text:'Stress hormones like cortisol can raise glucose by 20–40 mg/dL. Try a 5-minute deep breathing exercise to help reduce your current readings.'},
+  ],
+  high:[
+    {icon:'fa-exclamation-circle',color:'#DC2626',bg:'#FEE2E2',border:'#DC2626',title:'High Risk — Immediate Action',text:'Your glucose is critically elevated. Contact your healthcare provider immediately and check for ketones if you have Type 1 diabetes.'},
+    {icon:'fa-ban',color:'#B91C1C',bg:'#FEE2E2',border:'#B91C1C',title:'Stop All High-Sugar Intake',text:'At this risk level, any additional carbohydrate intake can cause dangerous hyperglycemia. Stick to water, proteins, and non-starchy vegetables.'},
+    {icon:'fa-heartbeat',color:'#DC2626',bg:'#FEE2E2',border:'#DC2626',title:'Cardiovascular Stress Warning',text:'Prolonged high glucose damages blood vessel walls. Your heart rate combined with current glucose suggests elevated cardiovascular strain. Rest now.'},
+    {icon:'fa-ambulance',color:'#B91C1C',bg:'#FEE2E2',border:'#B91C1C',title:'Watch for Emergency Symptoms',text:'Watch for excessive thirst, frequent urination, blurred vision, or confusion — these are signs of hyperglycemia requiring immediate medical attention.'},
+    {icon:'fa-syringe',color:'#DC2626',bg:'#FEE2E2',border:'#DC2626',title:'Insulin Adjustment Needed',text:'Your reading suggests your insulin-to-carb ratio may need review. Log this reading and share it with your endocrinologist at your next visit.'},
+  ]
+};
+const allChecklists={
+  low:[{label:'Morning Fasting Check',checked:true},{label:'Pre-Breakfast Insulin Dose',checked:true},{label:'Post-Breakfast Walk (10 min)',checked:true},{label:'Pre-Lunch Reading',checked:false},{label:'Evening Activity Goal (30 min)',checked:false},{label:'Bedtime Glucose Check',checked:false}],
+  moderate:[{label:'Morning Fasting Check',checked:true},{label:'Medication / Insulin Taken',checked:true},{label:'Post-Meal Walk (15 min)',checked:false},{label:'Reduce Carbs at Next Meal',checked:false},{label:'2 PM Glucose Reading',checked:false},{label:'Drink 500ml Water Now',checked:false},{label:'Evening Glucose Check',checked:false}],
+  high:[{label:'Contact Your Doctor',checked:false},{label:'Check Ketone Levels',checked:false},{label:'Take Corrective Insulin',checked:false},{label:'Stop Carbohydrate Intake',checked:false},{label:'Drink Water (500ml/hr)',checked:false},{label:'Recheck Glucose in 30 min',checked:false},{label:'Rest — Avoid Activity',checked:false},{label:'Log Readings for Doctor',checked:false}]
+};
+
+let currentRiskLevel='low',checklistState={};
+
+function renderInsights(r){
+  const ins=allInsights[r],c=document.getElementById('insightsContainer'),b=document.getElementById('insightRiskBadge');
+  const s={low:{bg:'#D1FAE5',color:'#047857',text:'LOW RISK'},moderate:{bg:'#FEF3C7',color:'#B45309',text:'MODERATE RISK'},high:{bg:'#FEE2E2',color:'#B91C1C',text:'HIGH RISK'}}[r];
+  b.style.background=s.bg;b.style.color=s.color;b.textContent=s.text;
+  c.innerHTML=ins.map(i=>`<div class="insight-card" style="background:${i.bg};border-left:4px solid ${i.border};"><i class="fas ${i.icon}" style="color:${i.color};font-size:1rem;flex-shrink:0;margin-top:2px;"></i><p style="font-size:0.84rem;color:#334155;line-height:1.65;"><strong>${i.title}:</strong> ${i.text}</p></div>`).join('');
+}
+function renderChecklist(r){
+  const items=allChecklists[r],c=document.getElementById('checklistContainer');
+  if(currentRiskLevel!==r||Object.keys(checklistState).length===0){checklistState={};items.forEach((item,i)=>{checklistState[i]=item.checked;});}
+  c.innerHTML=items.map((item,i)=>`<label style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="toggleCheck(${i})"><input type="checkbox" ${checklistState[i]?'checked':''} style="width:18px;height:18px;accent-color:#0B5FD6;" onclick="event.stopPropagation();toggleCheck(${i})"/><span style="font-size:0.85rem;font-weight:500;color:${checklistState[i]?'#94A3B8':'#475569'};${checklistState[i]?'text-decoration:line-through;':''}">${item.label}</span></label>`).join('');
+  updateProgress();
+}
+function toggleCheck(i){checklistState[i]=!checklistState[i];renderChecklist(currentRiskLevel);}
+function updateProgress(){const t=Object.keys(checklistState).length,d=Object.values(checklistState).filter(Boolean).length,p=t>0?Math.round((d/t)*100):0;document.getElementById('progressBar').style.width=p+'%';document.getElementById('progressLabel').textContent=p+'%';}
+renderInsights('low');renderChecklist('low');
+
+/* ══════════════════
+   CHARTS INIT
+══════════════════ */
+const tLabels=[],gData=[],hrData=[],stData=[],spo2Arr=[];
+let lastSig=null,prevGlucose=null;
+
+const cd={
+  responsive:true,maintainAspectRatio:false,
+  animation:{duration:400,easing:'easeInOutQuart'},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.9)',padding:10,cornerRadius:8,titleFont:{size:11},bodyFont:{size:11}}},
+  scales:{
+    x:{grid:{color:'rgba(11,95,214,0.035)'},ticks:{font:{size:9},color:'#94A3B8',maxTicksLimit:8}},
+    y:{grid:{color:'rgba(11,95,214,0.035)'},ticks:{font:{size:9},color:'#94A3B8'}}
+  }
+};
+
+const gChart=new Chart(document.getElementById('glucoseChart'),{
+  type:'line',
+  data:{labels:tLabels,datasets:[
+    {label:'Glucose',data:gData,borderColor:'#0B5FD6',backgroundColor:'rgba(11,95,214,0.08)',fill:true,tension:0.4,borderWidth:2,
+     pointBackgroundColor:ctx=>{const v=gData[ctx.dataIndex];return v>180?'#DC2626':v<70?'#F59E0B':'#10B981';},
+     pointRadius:3,pointHoverRadius:6,segment:{borderColor:ctx=>{const v=gData[ctx.p1DataIndex];return v>180?'#EF4444':v<70?'#F59E0B':'#0B5FD6';}}},
+    {label:'Upper (180)',data:[],borderColor:'rgba(239,68,68,0.4)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false},
+    {label:'Lower (70)',data:[],borderColor:'rgba(245,158,11,0.4)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}
+  ]},
+  options:{...cd,scales:{...cd.scales,y:{...cd.scales.y,min:50,max:260,ticks:{...cd.scales.y.ticks,callback:v=>v+''}}}},
+});
+
+const hrChart=new Chart(document.getElementById('heartRateChart'),{
+  type:'line',
+  data:{labels:tLabels,datasets:[{label:'Heart Rate',data:hrData,borderColor:'#EF4444',backgroundColor:'rgba(239,68,68,0.08)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#EF4444',pointRadius:3}]},
+  options:{...cd,scales:{...cd.scales,y:{...cd.scales.y,min:40,max:160}}}
+});
+
+const stChart=new Chart(document.getElementById('stepsChart'),{
+  type:'bar',
+  data:{labels:tLabels,datasets:[{label:'Steps',data:stData,backgroundColor:ctx=>stData[ctx.dataIndex]>=8000?'rgba(13,148,136,0.8)':'rgba(11,95,214,0.7)',borderRadius:5,borderSkipped:false}]},
+  options:{...cd,scales:{...cd.scales,y:{...cd.scales.y,beginAtZero:true}}}
+});
+
+const sp2Chart=new Chart(document.getElementById('spo2Chart'),{
+  type:'line',
+  data:{labels:tLabels,datasets:[{label:'SpO2 %',data:spo2Arr,borderColor:'#8B5CF6',backgroundColor:'rgba(139,92,246,0.12)',fill:true,tension:0.4,borderWidth:1.5,pointRadius:0}]},
+  options:{...cd,scales:{x:{display:false},y:{...cd.scales.y,min:88,max:100,ticks:{font:{size:8},color:'#94A3B8',callback:v=>v+'%'}}},plugins:{legend:{display:false},tooltip:{...cd.plugins.tooltip}}}
+});
+
+/* ══════════════════
+   LIVE DATA POLL
+══════════════════ */
+let lastRisk='low';
+let spo2AlertCooldown=0;
+
+async function fetchLiveData(){
+  try{
+    const res=await fetch('/live');
+    if(!res.ok)return;
+    const data=await res.json();
+    const sig=`${data.glucose}-${data.heart_rate}-${data.steps}`;
+    if(sig===lastSig)return;
+    lastSig=sig;
+
+    const time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+    /* ── Update stat values ── */
+    document.getElementById('glucoseValue').textContent=data.glucose.toFixed(1);
+    document.getElementById('heartRateValue').textContent=data.heart_rate.toFixed(0);
+    document.getElementById('stepsValue').textContent=Number(data.steps).toLocaleString();
+    document.getElementById('bpmLive').textContent=data.heart_rate.toFixed(0)+' bpm';
+    document.getElementById('stepsLive').textContent=Number(data.steps).toLocaleString()+' steps';
+
+    /* SpO2 — from real IoT sensor via data.spo2 */
+    if(data.spo2!=null){
+      const spo2=parseFloat(Math.min(100,Math.max(0,data.spo2)).toFixed(1));
+      document.getElementById('spo2Value').textContent=spo2;
+      document.getElementById('spo2Live').textContent=spo2+'%';
+      const spo2El=document.getElementById('spo2Status');
+      if(spo2>=95){spo2El.textContent='Normal';spo2El.style.color='#8B5CF6';}
+      else if(spo2>=90){spo2El.textContent='Low';spo2El.style.color='#F59E0B';}
+      else{spo2El.textContent='Critical';spo2El.style.color='#DC2626';}
+      spo2Arr.push(spo2);
+      if(spo2<90&&spo2AlertCooldown<=0){
+        addNotification(`⚠️ Low SpO2: ${spo2}% — Blood oxygen below safe threshold.`,'moderate');
+        spo2AlertCooldown=10;
+      }
+      if(spo2AlertCooldown>0)spo2AlertCooldown--;
+    } else {
+      // No SpO2 data yet from sensor
+      if(document.getElementById('spo2Value').textContent==='--') { /* leave as -- */ }
+      spo2Arr.push(spo2Arr.length>0?spo2Arr[spo2Arr.length-1]:null);
+    }
+
+    /* Glucose trend */
+    const tw=document.getElementById('glucoseTrendWrap'),te=document.getElementById('glucoseTrend'),ti=document.getElementById('glucoseTrendIcon');
+    if(prevGlucose!==null){
+      const diff=data.glucose-prevGlucose;
+      if(diff>2){te.textContent='+'+diff.toFixed(1)+' Rising';tw.style.color='#DC2626';ti.className='fas fa-arrow-up';}
+      else if(diff<-2){te.textContent=diff.toFixed(1)+' Falling';tw.style.color='#059669';ti.className='fas fa-arrow-down';}
+      else{te.textContent='Stable';tw.style.color='#94A3B8';ti.className='fas fa-minus';}
+    }
+    prevGlucose=data.glucose;
+
+    /* Heart rate status */
+    const bpm=data.heart_rate,hEl=document.getElementById('heartTrend');
+    if(bpm>100){hEl.textContent='Elevated';hEl.parentElement.style.color='#DC2626';}
+    else if(bpm<55){hEl.textContent='Low';hEl.parentElement.style.color='#F59E0B';}
+    else{hEl.textContent='Normal';hEl.parentElement.style.color='#059669';}
+
+    /* Steps */
+    const sGoal=8000,sPct=Math.min(Math.round((data.steps/sGoal)*100),100);
+    document.getElementById('stepsTrend').textContent=sPct+'% of goal';
+
+    /* Risk */
+    const rv=data.probability*100;
+    document.getElementById('riskPercent').textContent=rv.toFixed(1)+'%';
+    let lvl='LOW',col='#10B981',mTxt='Stable Condition',mBg='#D1FAE5',mCol='#047857',newRisk='low';
+    if(rv>70){lvl='HIGH';col='#EF4444';mTxt='High Risk Detected';mBg='#FEE2E2';mCol='#B91C1C';newRisk='high';}
+    else if(rv>40){lvl='MODERATE';col='#F59E0B';mTxt='Moderate Risk';mBg='#FEF3C7';mCol='#B45309';newRisk='moderate';}
+
+    document.getElementById('riskLevel').textContent=lvl;
+    const mEl=document.getElementById('riskMessage');mEl.textContent=mTxt;mEl.style.background=mBg;mEl.style.color=mCol;
+    document.getElementById('riskCircle').style.stroke=col;
+    document.getElementById('riskCircle').style.strokeDashoffset=100-rv;
+
+    /* (risk box removed from patient card) */
+
+    /* Notifications + alerts on risk change */
+    if(newRisk!==lastRisk){
+      if(newRisk==='high'){
+        addNotification('🚨 HIGH RISK detected! Glucose critically elevated. Immediate action required.','high');
+        addNotification(`Vitals: Glucose ${data.glucose.toFixed(1)} mg/dL · HR ${data.heart_rate.toFixed(0)} bpm · SpO2 ${spo2}%`,'high');
+        showAlert('🚨 HIGH RISK: Glucose critically elevated — contact your healthcare provider now!','high');
+        showToast('🚨 High risk alert!','error',7000);
+      }else if(newRisk==='moderate'){
+        addNotification('⚠️ MODERATE RISK: Glucose above 140 mg/dL — consider a short walk.','moderate');
+        showAlert('⚠️ MODERATE RISK: Glucose trending above target. Consider a 15-min walk.','moderate');
+        showToast('⚠️ Moderate risk detected','warning',5000);
+      }else{
+        addNotification('✅ Risk normalized to LOW. All vitals within healthy range.','low');
+        showToast('✅ Risk level back to low','success',4000);
+      }
+      currentRiskLevel=newRisk;checklistState={};
+      renderInsights(newRisk);renderChecklist(newRisk);
+      lastRisk=newRisk;
+    }
+
+    /* Push to charts */
+    tLabels.push(time);gData.push(data.glucose);hrData.push(data.heart_rate);stData.push(data.steps);
+    /* Reference lines */
+    gChart.data.datasets[1].data=tLabels.map(()=>180);
+    gChart.data.datasets[2].data=tLabels.map(()=>70);
+
+    if(tLabels.length>24){
+      tLabels.shift();gData.shift();hrData.shift();stData.shift();if(spo2Arr.length>24)spo2Arr.shift();
+      gChart.data.datasets[1].data.shift();gChart.data.datasets[2].data.shift();
+    }
+    gChart.update();hrChart.update();stChart.update();sp2Chart.update();
+  }catch(err){console.error('Live fetch:',err);}
+}
+setInterval(fetchLiveData,3000);
 fetchLiveData();
 </script>
-</body></html>
+</body>
+</html>

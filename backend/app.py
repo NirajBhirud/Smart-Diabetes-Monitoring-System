@@ -49,6 +49,7 @@ class Prediction(db.Model):
     user_id     = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     glucose     = db.Column(db.Float, nullable=False)
     heart_rate  = db.Column(db.Float, nullable=False)
+    spo2        = db.Column(db.Float)
     steps       = db.Column(db.Integer, nullable=False)
     activity    = db.Column(db.Integer, nullable=False)
     prediction  = db.Column(db.String(20))
@@ -138,6 +139,10 @@ def run_prediction(glucose, age, bmi, heart_rate, activity):
 def landing():
     return render_template("landing.html")
 
+@app.route('/api/user-count')
+def user_count():
+    count = User.query.count()  # adjust to your model name
+    return jsonify({'count': count})
 
 @app.route("/auth")
 def auth():
@@ -328,6 +333,7 @@ def iot_predict():
     try:
         glucose    = float(data.get("Glucose"))
         heart_rate = float(data.get("HeartRate"))
+        spo2       = float(data.get("SpO2"))   # ✅ read only
         steps      = int(data.get("Activity"))
     except (TypeError, ValueError):
         return jsonify({"error": "Invalid input"}), 400
@@ -350,6 +356,7 @@ def iot_predict():
         user_id     = active_iot_user_id,   # ✅ dynamic, not hardcoded 1
         glucose     = glucose,
         heart_rate  = heart_rate,
+        spo2        = spo2,
         steps       = steps,
         activity    = activity,
         prediction  = label,
@@ -377,6 +384,7 @@ def iot_live():
         "active_user_id": active_iot_user_id,
         "glucose":        record.glucose,
         "heart_rate":     record.heart_rate,
+        "spo2":           record.spo2,
         "steps":          record.steps,
         "activity_level": record.activity,
         "prediction":     record.prediction,
@@ -399,7 +407,7 @@ def iot_history():
         "time":        r.created_at.strftime("%Y-%m-%d %H:%M:%S")
     } for r in records])
 
-
+ 
 # =========================================================
 # LIVE DATA (user-specific — dashboard polls this)
 # =========================================================
@@ -424,6 +432,7 @@ def live():
     return jsonify({
         "glucose":        record.glucose,
         "heart_rate":     record.heart_rate,
+        "spo2":           record.spo2,
         "steps":          record.steps,
         "activity_level": record.activity,
         "probability":    record.probability,

@@ -61,6 +61,7 @@ X_scaled = scaler.transform(apply_weights(row.values))
 pred = model.predict(X_scaled)[0]
 prob = model.predict_proba(X_scaled)[0][1]
 print("TEST scaler features:", scaler.n_features_in_)
+
 print("\n" + "="*40)
 print("⚠️ Prediction: DIABETIC" if pred else "✅ Prediction: NON-DIABETIC")
 print("Risk Probability:", round(prob*100, 2), "%")

@@ -42,8 +42,8 @@ print("=" * 60)
 
 # ADA thresholds — hard-coded from ADA Standards of Care 2024
 GLUCOSE_NORMAL_MAX   = 99
-GLUCOSE_PREDIAB_MAX  = 125
-GLUCOSE_DIABETIC_MIN = 126
+GLUCOSE_PREDIAB_MAX  = 124
+GLUCOSE_DIABETIC_MIN = 125
 
 
 # ---------------------------------------------------------
@@ -227,11 +227,11 @@ print(f"Train: {len(X_train)} | Test: {len(X_test)}")
 print("\n--- DYNAMIC CLINICAL WEIGHTING ---")
 
 BASE_WEIGHTS = np.array([
-    5.0,   # Glucose
-    1.2,   # Age
-    1.5,   # BMI
-    0.9,   # HeartRate
-    0.7,   # Activity
+    6.0,   # Glucose
+    2.5,   # Age
+    1.3,   # BMI
+    0.6,   # HeartRate
+    0.6,   # Activity
     4.0,   # Glucose_Zone
     6.0,   # Glucose_Excess
     8.0,   # Is_Diabetic_Glucose
