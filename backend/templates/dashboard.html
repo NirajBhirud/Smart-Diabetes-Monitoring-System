@@ -120,6 +120,10 @@
   .toast.warning{background:linear-gradient(135deg,#B45309,#D97706);}
 
   .insight-card{display:flex;gap:14px;padding:14px;border-radius:14px;transition:all 0.5s ease;}
+
+  /* Activity ring animation */
+  #activityRing{transition:stroke-dashoffset 0.8s ease-in-out;}
+
   ::-webkit-scrollbar{width:6px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--blue-200);border-radius:3px;}
@@ -210,15 +214,12 @@
             <span class="dd-avatar-initial" id="ddAvatarInitial">{{ user.username[0]|upper if user.username else (user.name[0]|upper if user.name else 'U') }}</span>
             <div class="dd-cam-overlay"><i class="fas fa-camera"></i><span>Change Photo</span></div>
           </div>
-          <div class="dh-username" id="dd_username_display">
-  @{{ user.username or 'username' }}
-</div>
+          <div class="dh-username" id="dd_username_display">@{{ user.username or 'username' }}</div>
           <div class="dh-name" id="dd_name">{{ user.name if user.name else 'User' }}</div>
           <div class="dh-email" id="dd_email">{{ user.email if user.email else '' }}</div>
         </div>
         <div class="dd-pills-row">
           <span class="dd-pill" style="background:#EFF6FF;color:#0B5FD6;border:1px solid #BFDBFE;" id="dd_age_pill">{{ user.age if user.age else '--' }} yrs</span>
-          
         </div>
         <div class="dropdown-body">
           <div class="dd-item" onclick="openEditProfile()"><div class="dd-icon" style="background:#EFF6FF;color:#0B5FD6;"><i class="fas fa-user-edit"></i></div><span>Edit Profile</span></div>
@@ -233,7 +234,7 @@
 <!-- MAIN -->
 <main class="max-w-[1600px] mx-auto p-6 space-y-6">
 
-  <!-- TOP ROW: Patient card + 4 stat cards -->
+  <!-- TOP ROW: Patient card + 3 stat cards + Activity card -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
     <!-- PATIENT CARD -->
@@ -242,12 +243,10 @@
         <div class="flex items-center"><span style="padding:3px 12px;background:#D1FAE5;color:#047857;font-size:0.72rem;font-weight:700;border-radius:50px;letter-spacing:0.5px;">ACTIVE</span></div>
         <div class="text-center py-3">
           <h2 style="font-size:1.35rem;font-weight:800;color:#0F172A;letter-spacing:-0.3px;" id="pc_name">{{ user.name if user.name else 'User' }}</h2>
-         <p style="font-size:0.78rem;color:#94A3B8;font-weight:500;margin-top:4px;">
-  <i class="fas fa-user" style="font-size:0.68rem;margin-right:4px;"></i>
-  <span id="pc_username_text">
-    @{{ user.username if user.username else 'username' }}
-  </span>
-</p>
+          <p style="font-size:0.78rem;color:#94A3B8;font-weight:500;margin-top:4px;">
+            <i class="fas fa-user" style="font-size:0.68rem;margin-right:4px;"></i>
+            <span id="pc_username_text">@{{ user.username if user.username else 'username' }}</span>
+          </p>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:14px;padding:16px;text-align:center;">
@@ -257,9 +256,7 @@
           </div>
           <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:14px;padding:16px;text-align:center;">
             <p style="font-size:0.62rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Gender</p>
-           <p id="pc_gender">
-  {{ user.gender if user.gender else '--' }}
-</p>
+            <p id="pc_gender" style="font-size:1.1rem;font-weight:700;color:#0D9488;">{{ user.gender if user.gender else '--' }}</p>
             <p style="font-size:0.68rem;color:#94A3B8;margin-top:4px;">&nbsp;</p>
           </div>
         </div>
@@ -269,7 +266,7 @@
       </a>
     </section>
 
-    <!-- 4 STAT CARDS -->
+    <!-- 3 STAT CARDS + ACTIVITY (2x2 grid on right) -->
     <section class="lg:col-span-9 grid grid-cols-2 md:grid-cols-4 gap-4 h-full">
 
       <!-- Glucose -->
@@ -335,10 +332,10 @@
         </div>
       </div>
 
-      <!-- Activity -->
+      <!-- Activity Card — fully working with animated ring -->
       <div class="stat-card glass-card" style="border-left-color:#14B8A6;display:flex;flex-direction:column;justify-content:space-between;">
         <div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
             <div style="padding:10px;background:#F0FDFA;color:#0D9488;border-radius:12px;"><i class="fas fa-walking" style="font-size:1rem;"></i></div>
             <span style="font-size:0.58rem;font-weight:700;color:#94A3B8;letter-spacing:1px;">DAILY</span>
           </div>
@@ -348,10 +345,25 @@
             <span style="font-size:0.7rem;font-weight:700;color:#94A3B8;">steps</span>
           </div>
         </div>
-        <div>
-          <div style="font-size:0.66rem;color:#94A3B8;font-weight:600;margin-bottom:8px;">Goal: 8,000 steps</div>
-          <div style="display:flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:700;color:#0D9488;padding:8px 10px;background:#F0FDFA;border-radius:8px;">
-            <i class="fas fa-arrow-up" style="font-size:0.55rem;"></i><span id="stepsTrend">0% of goal</span>
+        <!-- Animated progress ring -->
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+          <div style="position:relative;width:52px;height:52px;flex-shrink:0;">
+            <svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg);">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="#E2E8F0" stroke-width="4"/>
+              <circle id="activityRing" cx="26" cy="26" r="22" fill="none" stroke="#14B8A6" stroke-width="4"
+                stroke-dasharray="138.2" stroke-dashoffset="138.2" stroke-linecap="round"/>
+            </svg>
+            <span id="activityPct" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#0D9488;">0%</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.66rem;color:#94A3B8;font-weight:600;margin-bottom:4px;">Goal: 8,000 steps</div>
+            <div style="width:100%;background:#E2E8F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div id="activityBar" style="background:linear-gradient(90deg,#14B8A6,#0B5FD6);height:100%;width:0%;border-radius:50px;transition:width 0.8s ease;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:700;color:#0D9488;margin-top:5px;">
+              <i class="fas fa-arrow-up" id="activityTrendIcon" style="font-size:0.55rem;"></i>
+              <span id="stepsTrend">0% of goal</span>
+            </div>
           </div>
         </div>
       </div>
@@ -391,38 +403,66 @@
     </div>
     <div class="flex flex-col gap-6">
 
-      <!-- Risk + SpO2 Chart -->
-      <section class="glass-card rounded-3xl p-6 shadow-lg" style="height:380px;display:flex;flex-direction:column;align-items:center;text-align:center;">
-        <h3 style="font-size:0.72rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;">Risk Assessment</h3>
-        <div style="position:relative;width:160px;height:160px;margin-bottom:16px;flex-shrink:0;">
+      <!-- Risk Assessment — TALL (fills full right column height) -->
+      <section class="glass-card rounded-3xl p-6 shadow-lg flex-1" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <h3 style="font-size:0.72rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:2px;margin-bottom:20px;">Risk Assessment</h3>
+
+        <!-- Large risk ring -->
+        <div style="position:relative;width:210px;height:210px;margin-bottom:18px;flex-shrink:0;">
           <svg style="width:100%;height:100%;transform:rotate(-90deg);" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="16" fill="none" stroke="#E2E8F0" stroke-width="3"></circle>
-            <circle id="riskCircle" cx="18" cy="18" r="16" fill="none" stroke="#10B981" stroke-dasharray="100 100" stroke-dashoffset="100" stroke-linecap="round" stroke-width="3"></circle>
+            <circle cx="18" cy="18" r="16" fill="none" stroke="#E2E8F0" stroke-width="2.5"></circle>
+            <circle id="riskCircle" cx="18" cy="18" r="16" fill="none" stroke="#10B981" stroke-dasharray="100 100" stroke-dashoffset="100" stroke-linecap="round" stroke-width="2.5"></circle>
           </svg>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-            <span id="riskLevel" style="font-size:1.2rem;font-weight:800;color:#0F172A;">LOW</span>
-            <span style="font-size:1rem;font-weight:800;margin-top:2px;"><span id="riskPercent">0%</span></span>
-            <span style="font-size:0.65rem;color:#64748B;font-weight:600;">LEVEL</span>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+            <span style="font-size:0.65rem;font-weight:700;color:#94A3B8;letter-spacing:2px;text-transform:uppercase;">Risk Level</span>
+            <span id="riskLevel" style="font-size:2rem;font-weight:800;color:#0F172A;line-height:1;">LOW</span>
+            <span id="riskPercent" style="font-size:1.4rem;font-weight:800;color:#10B981;line-height:1;">0%</span>
           </div>
         </div>
-        <div id="riskMessage" style="padding:7px 16px;border-radius:10px;font-weight:700;font-size:0.84rem;background:#D1FAE5;color:#047857;margin-bottom:14px;">Stable Condition</div>
-        <!-- SpO2 trend mini chart -->
+
+        <!-- Risk message badge -->
+        <div id="riskMessage" style="padding:9px 24px;border-radius:12px;font-weight:700;font-size:0.9rem;background:#D1FAE5;color:#047857;margin-bottom:20px;">Stable Condition</div>
+
+        <!-- Risk breakdown bars -->
+        <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.7rem;font-weight:600;color:#64748B;width:68px;text-align:right;flex-shrink:0;">Glucose</span>
+            <div style="flex:1;background:#E2E8F0;border-radius:50px;height:7px;overflow:hidden;">
+              <div id="riskBarGlucose" style="background:linear-gradient(90deg,#0B5FD6,#10B981);height:100%;width:0%;border-radius:50px;transition:width 0.8s ease;"></div>
+            </div>
+            <span id="riskBarGlucoseVal" style="font-size:0.68rem;font-weight:700;color:#64748B;width:32px;">--</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.7rem;font-weight:600;color:#64748B;width:68px;text-align:right;flex-shrink:0;">Heart Rate</span>
+            <div style="flex:1;background:#E2E8F0;border-radius:50px;height:7px;overflow:hidden;">
+              <div id="riskBarHR" style="background:linear-gradient(90deg,#EF4444,#F59E0B);height:100%;width:0%;border-radius:50px;transition:width 0.8s ease;"></div>
+            </div>
+            <span id="riskBarHRVal" style="font-size:0.68rem;font-weight:700;color:#64748B;width:32px;">--</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.7rem;font-weight:600;color:#64748B;width:68px;text-align:right;flex-shrink:0;">SpO2</span>
+            <div style="flex:1;background:#E2E8F0;border-radius:50px;height:7px;overflow:hidden;">
+              <div id="riskBarSpo2" style="background:linear-gradient(90deg,#8B5CF6,#0B5FD6);height:100%;width:0%;border-radius:50px;transition:width 0.8s ease;"></div>
+            </div>
+            <span id="riskBarSpo2Val" style="font-size:0.68rem;font-weight:700;color:#64748B;width:32px;">--</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.7rem;font-weight:600;color:#64748B;width:68px;text-align:right;flex-shrink:0;">Activity</span>
+            <div style="flex:1;background:#E2E8F0;border-radius:50px;height:7px;overflow:hidden;">
+              <div id="riskBarSteps" style="background:linear-gradient(90deg,#14B8A6,#0B5FD6);height:100%;width:0%;border-radius:50px;transition:width 0.8s ease;"></div>
+            </div>
+            <span id="riskBarStepsVal" style="font-size:0.68rem;font-weight:700;color:#64748B;width:32px;">--</span>
+          </div>
+        </div>
+
+        <!-- SpO2 trend mini chart — fills remaining space -->
         <div style="width:100%;flex:1;display:flex;flex-direction:column;min-height:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <p style="font-size:0.7rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;">SpO2 Trend</p>
             <span id="spo2Live" style="font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;color:#8B5CF6;background:#F5F3FF;padding:2px 8px;border-radius:6px;">-- %</span>
           </div>
-          <div style="flex:1;position:relative;min-height:0;"><canvas id="spo2Chart"></canvas></div>
+          <div style="flex:1;position:relative;min-height:80px;"><canvas id="spo2Chart"></canvas></div>
         </div>
-      </section>
-
-      <!-- Steps Chart -->
-      <section class="glass-card rounded-3xl p-6 shadow-lg" style="height:280px;display:flex;flex-direction:column;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div><h3 style="font-size:1rem;font-weight:700;color:#0F172A;">Daily Steps</h3><p style="font-size:0.75rem;color:#94A3B8;">Goal: 8,000 steps/day</p></div>
-          <span id="stepsLive" style="font-family:'DM Mono',monospace;font-size:0.88rem;font-weight:700;color:#0D9488;background:#F0FDFA;padding:4px 10px;border-radius:8px;">-- steps</span>
-        </div>
-        <div style="flex:1;position:relative;min-height:0;"><canvas id="stepsChart"></canvas></div>
       </section>
 
     </div>
@@ -544,36 +584,12 @@ function saveProfile(e){
   .then(r=>r.json()).then(d=>{if(d.success||d.message){applyProfile(name,username,age,gender);closeEditProfile();showToast('<i class="fas fa-check-circle"></i> Profile updated!','success');}else showToast(d.error||'Could not save.','error');})
   .catch(()=>{applyProfile(name,username,age,gender);closeEditProfile();showToast('<i class="fas fa-check-circle"></i> Profile updated!','success');});
 }
-function applyProfile(name, username, age, gender) {
-
-  if(name){
-    document.getElementById('pc_name').textContent = name;
-    document.getElementById('dd_name').textContent = name;
-  }
-
-  if(username){
-    document.getElementById('pc_username_text').textContent = '@' + username;
-    document.getElementById('dd_username_display').textContent = '@' + username;
-  }
-
-  if(age){
-    document.getElementById('pc_age').textContent = age;
-    document.getElementById('dd_age_pill').textContent = age + ' yrs';
-  }
-
-  if(gender){
-    document.getElementById('pc_gender').textContent = gender;
-    document.getElementById('dd_gender_pill').textContent = gender;
-  }
-
-  if(!uploadedAvatarDataURL){
-    const source = username || name;
-    if(source){
-      const initial = source.charAt(0).toUpperCase();
-      document.getElementById('headerAvatarPh').textContent = initial;
-      document.getElementById('ddAvatarInitial').textContent = initial;
-    }
-  }
+function applyProfile(name,username,age,gender){
+  if(name){document.getElementById('pc_name').textContent=name;document.getElementById('dd_name').textContent=name;}
+  if(username){document.getElementById('pc_username_text').textContent='@'+username;document.getElementById('dd_username_display').textContent='@'+username;}
+  if(age){document.getElementById('pc_age').textContent=age;document.getElementById('dd_age_pill').textContent=age+' yrs';}
+  if(gender){document.getElementById('pc_gender').textContent=gender;}
+  if(!uploadedAvatarDataURL){const source=username||name;if(source){const initial=source.charAt(0).toUpperCase();document.getElementById('headerAvatarPh').textContent=initial;document.getElementById('ddAvatarInitial').textContent=initial;}}
 }
 
 /* ── Toast ── */
@@ -633,7 +649,7 @@ renderInsights('low');renderChecklist('low');
 /* ══════════════════
    CHARTS INIT
 ══════════════════ */
-const tLabels=[],gData=[],hrData=[],stData=[],spo2Arr=[];
+const tLabels=[],gData=[],hrData=[],spo2Arr=[];
 let lastSig=null,prevGlucose=null;
 
 const cd={
@@ -664,23 +680,60 @@ const hrChart=new Chart(document.getElementById('heartRateChart'),{
   options:{...cd,scales:{...cd.scales,y:{...cd.scales.y,min:40,max:160}}}
 });
 
-const stChart=new Chart(document.getElementById('stepsChart'),{
-  type:'bar',
-  data:{labels:tLabels,datasets:[{label:'Steps',data:stData,backgroundColor:ctx=>stData[ctx.dataIndex]>=8000?'rgba(13,148,136,0.8)':'rgba(11,95,214,0.7)',borderRadius:5,borderSkipped:false}]},
-  options:{...cd,scales:{...cd.scales,y:{...cd.scales.y,beginAtZero:true}}}
-});
-
 const sp2Chart=new Chart(document.getElementById('spo2Chart'),{
   type:'line',
   data:{labels:tLabels,datasets:[{label:'SpO2 %',data:spo2Arr,borderColor:'#8B5CF6',backgroundColor:'rgba(139,92,246,0.12)',fill:true,tension:0.4,borderWidth:1.5,pointRadius:0}]},
   options:{...cd,scales:{x:{display:false},y:{...cd.scales.y,min:88,max:100,ticks:{font:{size:8},color:'#94A3B8',callback:v=>v+'%'}}},plugins:{legend:{display:false},tooltip:{...cd.plugins.tooltip}}}
 });
 
+/* ── Activity ring helper ── */
+function updateActivityRing(steps){
+  const goal=8000,pct=Math.min(steps/goal,1);
+  const circumference=138.2; // 2 * π * 22
+  const offset=circumference*(1-pct);
+  document.getElementById('activityRing').style.strokeDashoffset=offset;
+  const pctInt=Math.round(pct*100);
+  document.getElementById('activityPct').textContent=pctInt+'%';
+  document.getElementById('activityBar').style.width=Math.min(pctInt,100)+'%';
+  document.getElementById('stepsTrend').textContent=pctInt+'% of goal';
+  // colour the ring based on progress
+  const ringEl=document.getElementById('activityRing');
+  if(pct>=1){ringEl.style.stroke='#059669';}
+  else if(pct>=0.6){ringEl.style.stroke='#14B8A6';}
+  else if(pct>=0.3){ringEl.style.stroke='#F59E0B';}
+  else{ringEl.style.stroke='#EF4444';}
+  const trendIcon=document.getElementById('activityTrendIcon');
+  if(pct>=0.5){trendIcon.className='fas fa-arrow-up';document.getElementById('stepsTrend').parentElement.style.color='#0D9488';}
+  else{trendIcon.className='fas fa-arrow-right';document.getElementById('stepsTrend').parentElement.style.color='#F59E0B';}
+}
+
+/* ── Risk breakdown bars helper ── */
+function updateRiskBars(glucose,hr,spo2,steps){
+  // Glucose: 70-140 = 0%, >180 = 100%
+  const gPct=Math.min(Math.max((glucose-70)/(180-70)*100,0),100);
+  // HR: 60-100 = 0%, >130 = 100%
+  const hrPct=hr>100?Math.min((hr-100)/40*100,100):hr<60?Math.min((60-hr)/20*100,100):0;
+  // SpO2: 95+ = 0%, <90 = 100%
+  const spPct=spo2?Math.min(Math.max((95-spo2)/10*100,0),100):0;
+  // Steps: 0 steps = 100% risk contribution, 8000+ = 0%
+  const stPct=Math.max(100-Math.min(steps/8000*100,100),0);
+
+  document.getElementById('riskBarGlucose').style.width=gPct+'%';
+  document.getElementById('riskBarGlucoseVal').textContent=Math.round(gPct)+'%';
+  document.getElementById('riskBarHR').style.width=hrPct+'%';
+  document.getElementById('riskBarHRVal').textContent=Math.round(hrPct)+'%';
+  document.getElementById('riskBarSpo2').style.width=spPct+'%';
+  document.getElementById('riskBarSpo2Val').textContent=Math.round(spPct)+'%';
+  document.getElementById('riskBarSteps').style.width=stPct+'%';
+  document.getElementById('riskBarStepsVal').textContent=Math.round(stPct)+'%';
+}
+
 /* ══════════════════
    LIVE DATA POLL
 ══════════════════ */
 let lastRisk='low';
 let spo2AlertCooldown=0;
+let lastSpo2=null;
 
 async function fetchLiveData(){
   try{
@@ -698,26 +751,28 @@ async function fetchLiveData(){
     document.getElementById('heartRateValue').textContent=data.heart_rate.toFixed(0);
     document.getElementById('stepsValue').textContent=Number(data.steps).toLocaleString();
     document.getElementById('bpmLive').textContent=data.heart_rate.toFixed(0)+' bpm';
-    document.getElementById('stepsLive').textContent=Number(data.steps).toLocaleString()+' steps';
 
-    /* SpO2 — from real IoT sensor via data.spo2 */
+    /* ── Activity ring update ── */
+    updateActivityRing(data.steps);
+
+    /* SpO2 */
+    let currentSpo2=lastSpo2;
     if(data.spo2!=null){
-      const spo2=parseFloat(Math.min(100,Math.max(0,data.spo2)).toFixed(1));
-      document.getElementById('spo2Value').textContent=spo2;
-      document.getElementById('spo2Live').textContent=spo2+'%';
+      currentSpo2=parseFloat(Math.min(100,Math.max(0,data.spo2)).toFixed(1));
+      lastSpo2=currentSpo2;
+      document.getElementById('spo2Value').textContent=currentSpo2;
+      document.getElementById('spo2Live').textContent=currentSpo2+'%';
       const spo2El=document.getElementById('spo2Status');
-      if(spo2>=95){spo2El.textContent='Normal';spo2El.style.color='#8B5CF6';}
-      else if(spo2>=90){spo2El.textContent='Low';spo2El.style.color='#F59E0B';}
+      if(currentSpo2>=95){spo2El.textContent='Normal';spo2El.style.color='#8B5CF6';}
+      else if(currentSpo2>=90){spo2El.textContent='Low';spo2El.style.color='#F59E0B';}
       else{spo2El.textContent='Critical';spo2El.style.color='#DC2626';}
-      spo2Arr.push(spo2);
-      if(spo2<90&&spo2AlertCooldown<=0){
-        addNotification(`⚠️ Low SpO2: ${spo2}% — Blood oxygen below safe threshold.`,'moderate');
+      spo2Arr.push(currentSpo2);
+      if(currentSpo2<90&&spo2AlertCooldown<=0){
+        addNotification(`⚠️ Low SpO2: ${currentSpo2}% — Blood oxygen below safe threshold.`,'moderate');
         spo2AlertCooldown=10;
       }
       if(spo2AlertCooldown>0)spo2AlertCooldown--;
     } else {
-      // No SpO2 data yet from sensor
-      if(document.getElementById('spo2Value').textContent==='--') { /* leave as -- */ }
       spo2Arr.push(spo2Arr.length>0?spo2Arr[spo2Arr.length-1]:null);
     }
 
@@ -737,10 +792,6 @@ async function fetchLiveData(){
     else if(bpm<55){hEl.textContent='Low';hEl.parentElement.style.color='#F59E0B';}
     else{hEl.textContent='Normal';hEl.parentElement.style.color='#059669';}
 
-    /* Steps */
-    const sGoal=8000,sPct=Math.min(Math.round((data.steps/sGoal)*100),100);
-    document.getElementById('stepsTrend').textContent=sPct+'% of goal';
-
     /* Risk */
     const rv=data.probability*100;
     document.getElementById('riskPercent').textContent=rv.toFixed(1)+'%';
@@ -749,17 +800,19 @@ async function fetchLiveData(){
     else if(rv>40){lvl='MODERATE';col='#F59E0B';mTxt='Moderate Risk';mBg='#FEF3C7';mCol='#B45309';newRisk='moderate';}
 
     document.getElementById('riskLevel').textContent=lvl;
+    document.getElementById('riskPercent').style.color=col;
     const mEl=document.getElementById('riskMessage');mEl.textContent=mTxt;mEl.style.background=mBg;mEl.style.color=mCol;
     document.getElementById('riskCircle').style.stroke=col;
     document.getElementById('riskCircle').style.strokeDashoffset=100-rv;
 
-    /* (risk box removed from patient card) */
+    /* Risk breakdown bars */
+    updateRiskBars(data.glucose,data.heart_rate,currentSpo2,data.steps);
 
     /* Notifications + alerts on risk change */
     if(newRisk!==lastRisk){
       if(newRisk==='high'){
         addNotification('🚨 HIGH RISK detected! Glucose critically elevated. Immediate action required.','high');
-        addNotification(`Vitals: Glucose ${data.glucose.toFixed(1)} mg/dL · HR ${data.heart_rate.toFixed(0)} bpm · SpO2 ${spo2}%`,'high');
+        addNotification(`Vitals: Glucose ${data.glucose.toFixed(1)} mg/dL · HR ${data.heart_rate.toFixed(0)} bpm · SpO2 ${currentSpo2||'--'}%`,'high');
         showAlert('🚨 HIGH RISK: Glucose critically elevated — contact your healthcare provider now!','high');
         showToast('🚨 High risk alert!','error',7000);
       }else if(newRisk==='moderate'){
@@ -776,16 +829,16 @@ async function fetchLiveData(){
     }
 
     /* Push to charts */
-    tLabels.push(time);gData.push(data.glucose);hrData.push(data.heart_rate);stData.push(data.steps);
+    tLabels.push(time);gData.push(data.glucose);hrData.push(data.heart_rate);
     /* Reference lines */
     gChart.data.datasets[1].data=tLabels.map(()=>180);
     gChart.data.datasets[2].data=tLabels.map(()=>70);
 
     if(tLabels.length>24){
-      tLabels.shift();gData.shift();hrData.shift();stData.shift();if(spo2Arr.length>24)spo2Arr.shift();
+      tLabels.shift();gData.shift();hrData.shift();if(spo2Arr.length>24)spo2Arr.shift();
       gChart.data.datasets[1].data.shift();gChart.data.datasets[2].data.shift();
     }
-    gChart.update();hrChart.update();stChart.update();sp2Chart.update();
+    gChart.update();hrChart.update();sp2Chart.update();
   }catch(err){console.error('Live fetch:',err);}
 }
 setInterval(fetchLiveData,3000);

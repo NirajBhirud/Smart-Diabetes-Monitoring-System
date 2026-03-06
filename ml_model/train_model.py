@@ -1,25 +1,3 @@
-# =========================================================
-# SMART DIABETES MONITORING SYSTEM
-# CLINICALLY ACCURATE — LIVE MONITORING GRADE
-# ADA GLUCOSE THRESHOLD AWARE • RESEARCH VALIDATED
-# =========================================================
-#
-# ADA Standards of Care 2024 — Glucose thresholds:
-#   ≤  99 mg/dL = Normal
-#   100–125 mg/dL = Pre-Diabetic
-#   ≥ 126 mg/dL = DIABETIC (diagnostic criterion)
-#
-# Output: exactly 3 pkl files
-#   diabetes_model.pkl
-#   scaler.pkl          (plain RobustScaler — no custom class)
-#   feature_names.pkl
-#
-# ADA zone weights and dynamic multipliers are baked directly
-# into the training data before scaler.fit() — so inference
-# only needs: X_weighted = X * weights, then scaler.transform().
-# No extra pkl files. No custom classes. No AttributeError.
-# =========================================================
-
 import pandas as pd
 import numpy as np
 import joblib
